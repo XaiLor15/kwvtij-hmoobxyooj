@@ -20,7 +20,11 @@ bun install
 bun run dev      # ເປີດຕົວຢ່າງໃນເຄື່ອງ (ໂດຍປົກກະຕິ http://localhost:8080)
 bun run build    # ສ້າງເອກະສານຈຳໜ່າຍ
 bun run lint     # ກວດຮ່າງຮ້າງລະຫັດ
+npm run typecheck # ກວດ TypeScript
+npm test         # unit tests ຂອງ business logic
 ```
+
+ລາຍງານການກວດສອບ: [`docs/AUDIT_REPORT.md`](docs/AUDIT_REPORT.md) · ການທົດສອບ browser: [`tests/e2e/`](tests/e2e/README.md)
 
 ## ຖານຂໍ້ມູນ
 
