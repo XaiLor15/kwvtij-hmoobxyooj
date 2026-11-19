@@ -56,12 +56,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -73,21 +68,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Pencil } from "lucide-react";
-import {
-  useNews,
-  addNews,
-  updateNews,
-  deleteNews,
-  NEWS_CATEGORIES,
-} from "@/lib/news-store";
+import { useNews, addNews, updateNews, deleteNews, NEWS_CATEGORIES } from "@/lib/news-store";
 import { fileToDataUrl } from "@/lib/file-to-data-url";
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
-const categories = [
-  "ທັງໝົດ",
-  ...NEWS_CATEGORIES,
-];
+const categories = ["ທັງໝົດ", ...NEWS_CATEGORIES];
 
 // Tailwind palette classes per category (bg/10 + text-700)
 const catStyle: Record<string, { badge: string; icon: any }> = {
@@ -211,12 +197,30 @@ function NewsCard({
               ອ່ານ
             </Button>
             {onEdit && (
-              <Button size="sm" variant="ghost" className="h-7 w-7 p-0" title="ແກ້ໄຂ" onClick={(e) => { e.stopPropagation(); onEdit(news); }}>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 w-7 p-0"
+                title="ແກ້ໄຂ"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(news);
+                }}
+              >
                 <Pencil className="h-3.5 w-3.5" />
               </Button>
             )}
             {onDelete && (
-              <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-rose-600 hover:text-rose-700 hover:bg-rose-50" title="ລຶບ" onClick={(e) => { e.stopPropagation(); onDelete(news); }}>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-7 w-7 p-0 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                title="ລຶບ"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onDelete(news);
+                }}
+              >
                 <Trash2 className="h-3.5 w-3.5" />
               </Button>
             )}
@@ -239,11 +243,27 @@ function NewsPage() {
   const [editingNews, setEditingNews] = useState<any>(null);
   const [deletingNews, setDeletingNews] = useState<any>(null);
   const newsList = useNews();
-  const emptyNewsForm = { title: "", summary: "", tags: "", date: new Date().toISOString().slice(0,10), category: "", content: "", pinned: false, featured: false, urgent: false };
+  const emptyNewsForm = {
+    title: "",
+    summary: "",
+    tags: "",
+    date: new Date().toISOString().slice(0, 10),
+    category: "",
+    content: "",
+    pinned: false,
+    featured: false,
+    urgent: false,
+  };
   const [newsForm, setNewsForm] = useState(emptyNewsForm);
-  useEffect(() => { if (actionParam === "add") setShowModal(true); }, [actionParam]);
+  useEffect(() => {
+    if (actionParam === "add") setShowModal(true);
+  }, [actionParam]);
   const setNF = (k, v) => setNewsForm((f) => ({ ...f, [k]: v }));
-  const openCreateNews = () => { setEditingNews(null); setNewsForm(emptyNewsForm); setShowModal(true); };
+  const openCreateNews = () => {
+    setEditingNews(null);
+    setNewsForm(emptyNewsForm);
+    setShowModal(true);
+  };
   const openEditNews = (n) => {
     setEditingNews(n);
     setNewsForm({
@@ -260,9 +280,18 @@ function NewsPage() {
     setShowModal(true);
   };
   const saveNews = () => {
-    if (!newsForm.title.trim()) { toast.error("ກະລຸນາປ້ອນຫົວຂໍ້"); return; }
-    if (!newsForm.category) { toast.error("ກະລຸນາເລືອກໝວດໝູ່"); return; }
-    const tags = newsForm.tags.split(",").map((t) => t.trim()).filter(Boolean);
+    if (!newsForm.title.trim()) {
+      toast.error("ກະລຸນາປ້ອນຫົວຂໍ້");
+      return;
+    }
+    if (!newsForm.category) {
+      toast.error("ກະລຸນາເລືອກໝວດໝູ່");
+      return;
+    }
+    const tags = newsForm.tags
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
     if (editingNews) {
       updateNews(editingNews.id, { ...newsForm, tags });
       toast.success("ບັນທຶກການແກ້ໄຂແລ້ວ");
@@ -280,8 +309,7 @@ function NewsPage() {
     toast.success(`ລຶບ "${deletingNews.title}" ແລ້ວ`);
     setDeletingNews(null);
   };
-  const [selectedNews, setSelectedNews] =
-    useState<any | null>(null);
+  const [selectedNews, setSelectedNews] = useState<any | null>(null);
   const [activeTab, setActiveTab] = useState("content");
 
   // ── Per-news interactive content (frontend-only) ──
@@ -313,10 +341,7 @@ function NewsPage() {
       const list = prev[selectedNews.id] ?? defaultComments;
       return {
         ...prev,
-        [selectedNews.id]: [
-          { name: "ທ່ານ (ຂ້ອຍ)", text, time: "ດຽວນີ້" },
-          ...list,
-        ],
+        [selectedNews.id]: [{ name: "ທ່ານ (ຂ້ອຍ)", text, time: "ດຽວນີ້" }, ...list],
       };
     });
     setCommentDraft("");
@@ -396,11 +421,12 @@ function NewsPage() {
   const q = search.trim().toLowerCase().replace(/\s+/g, " ");
   const filtered = newsList
     .filter((n) => {
-      const matchCat =
-        activeCategory === "ທັງໝົດ" || n.category === activeCategory;
+      const matchCat = activeCategory === "ທັງໝົດ" || n.category === activeCategory;
       if (!q) return matchCat;
       const hay = [n.title, n.summary, n.author, n.category, ...(n.tags || [])]
-        .filter(Boolean).join(" ").toLowerCase();
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
       return matchCat && hay.includes(q);
     })
 
@@ -420,12 +446,48 @@ function NewsPage() {
   const totalViews = newsList.reduce((s, n) => s + (Number(n.views) || 0), 0);
   const categoriesCount = new Set(newsList.map((n) => n.category).filter(Boolean)).size;
   const stats = [
-    { icon: Newspaper, label: "ຂ່າວທັງໝົດ", value: String(totalNews), sub: "ລາຍການ", color: "text-emerald-600 bg-emerald-50" },
-    { icon: Star, label: "ເຜີຍແຜ່ແລ້ວ", value: String(publishedNews), sub: "ຂ່າວ", color: "text-sky-600 bg-sky-50" },
-    { icon: Pencil, label: "ສະບັບຮ່າງ", value: String(draftNews), sub: "ຮ່າງ", color: "text-slate-600 bg-slate-100" },
-    { icon: Pin, label: "ປະກາດສຳຄັນ", value: String(pinnedCount), sub: "ປັກໝຸດ", color: "text-amber-600 bg-amber-50" },
-    { icon: Eye, label: "ຜູ້ອ່ານ", value: totalViews ? totalViews.toLocaleString() : "0", sub: "ທັງໝົດ", color: "text-orange-600 bg-orange-50" },
-    { icon: Megaphone, label: "ໝວດຂ່າວ", value: String(categoriesCount), sub: "ໝວດ", color: "text-violet-600 bg-violet-50" },
+    {
+      icon: Newspaper,
+      label: "ຂ່າວທັງໝົດ",
+      value: String(totalNews),
+      sub: "ລາຍການ",
+      color: "text-emerald-600 bg-emerald-50",
+    },
+    {
+      icon: Star,
+      label: "ເຜີຍແຜ່ແລ້ວ",
+      value: String(publishedNews),
+      sub: "ຂ່າວ",
+      color: "text-sky-600 bg-sky-50",
+    },
+    {
+      icon: Pencil,
+      label: "ສະບັບຮ່າງ",
+      value: String(draftNews),
+      sub: "ຮ່າງ",
+      color: "text-slate-600 bg-slate-100",
+    },
+    {
+      icon: Pin,
+      label: "ປະກາດສຳຄັນ",
+      value: String(pinnedCount),
+      sub: "ປັກໝຸດ",
+      color: "text-amber-600 bg-amber-50",
+    },
+    {
+      icon: Eye,
+      label: "ຜູ້ອ່ານ",
+      value: totalViews ? totalViews.toLocaleString() : "0",
+      sub: "ທັງໝົດ",
+      color: "text-orange-600 bg-orange-50",
+    },
+    {
+      icon: Megaphone,
+      label: "ໝວດຂ່າວ",
+      value: String(categoriesCount),
+      sub: "ໝວດ",
+      color: "text-violet-600 bg-violet-50",
+    },
   ];
 
   return (
@@ -451,9 +513,14 @@ function NewsPage() {
         {stats.map((s) => {
           const Icon = s.icon;
           return (
-            <Card key={s.label} className="rounded-xl border bg-card shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5">
+            <Card
+              key={s.label}
+              className="rounded-xl border bg-card shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5"
+            >
               <CardContent className="p-4">
-                <div className={`inline-flex items-center justify-center rounded-lg p-2 mb-3 ${s.color}`}>
+                <div
+                  className={`inline-flex items-center justify-center rounded-lg p-2 mb-3 ${s.color}`}
+                >
                   <Icon className="h-4 w-4" />
                 </div>
                 <p className="text-xs text-muted-foreground mb-0.5">{s.label}</p>
@@ -486,7 +553,9 @@ function NewsPage() {
                 }}
               >
                 <CardContent className="p-4 flex items-center gap-4">
-                  <div className={`rounded-lg p-2 shrink-0 ${n.urgent ? "bg-rose-100 text-rose-600" : "bg-amber-100 text-amber-600"}`}>
+                  <div
+                    className={`rounded-lg p-2 shrink-0 ${n.urgent ? "bg-rose-100 text-rose-600" : "bg-amber-100 text-amber-600"}`}
+                  >
                     {n.urgent ? <Zap className="h-5 w-5" /> : <Pin className="h-5 w-5" />}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -510,7 +579,11 @@ function NewsPage() {
                     <span className="text-xs text-muted-foreground flex items-center gap-1">
                       <Eye className="h-3 w-3" /> {n.views}
                     </span>
-                    <Button size="sm" variant={n.urgent ? "destructive" : "secondary"} className="h-6 text-xs px-2">
+                    <Button
+                      size="sm"
+                      variant={n.urgent ? "destructive" : "secondary"}
+                      className="h-6 text-xs px-2"
+                    >
                       ອ່ານ <ChevronRight className="h-3 w-3" />
                     </Button>
                   </div>
@@ -714,13 +787,16 @@ function NewsPage() {
 
                 <div className="flex-1 overflow-y-auto px-6 py-4">
                   <TabsContent value="content" className="mt-0 space-y-4">
-                    <p className="text-sm text-muted-foreground leading-relaxed">{selectedNews.summary}</p>
-                    <p className="text-sm text-foreground leading-loose">
-                      {selectedNews.content}
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {selectedNews.summary}
                     </p>
+                    <p className="text-sm text-foreground leading-loose">{selectedNews.content}</p>
                     <div className="flex gap-1.5 flex-wrap">
                       {selectedNews.tags.map((tag) => (
-                        <span key={tag} className="text-xs bg-primary/10 text-primary rounded-md px-2 py-0.5 border border-primary/20">
+                        <span
+                          key={tag}
+                          className="text-xs bg-primary/10 text-primary rounded-md px-2 py-0.5 border border-primary/20"
+                        >
                           #{tag}
                         </span>
                       ))}
@@ -739,19 +815,30 @@ function NewsPage() {
                           onClick={() => setSelectedNews(n)}
                         >
                           <CardContent className="p-3 flex items-center gap-3">
-                            <div className={`rounded-md p-1.5 shrink-0 ${catStyle[n.category]?.badge.replace("text-", "bg-").split(" ")[0] ?? "bg-muted"} bg-opacity-30`}>
+                            <div
+                              className={`rounded-md p-1.5 shrink-0 ${catStyle[n.category]?.badge.replace("text-", "bg-").split(" ")[0] ?? "bg-muted"} bg-opacity-30`}
+                            >
                               {(() => {
                                 const s = catStyle[n.category];
-                                if (!s) return <Newspaper className="h-4 w-4 text-muted-foreground" />;
+                                if (!s)
+                                  return <Newspaper className="h-4 w-4 text-muted-foreground" />;
                                 const Icon = s.icon;
                                 return <Icon className="h-4 w-4" />;
                               })()}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm font-semibold text-foreground truncate">{n.title}</p>
+                              <p className="text-sm font-semibold text-foreground truncate">
+                                {n.title}
+                              </p>
                               <p className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5">
-                                <span className="flex items-center gap-1"><Calendar className="h-3 w-3" />{n.date}</span>
-                                <span className="flex items-center gap-1"><Eye className="h-3 w-3" />{n.views}</span>
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="h-3 w-3" />
+                                  {n.date}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Eye className="h-3 w-3" />
+                                  {n.views}
+                                </span>
                               </p>
                             </div>
                             <CategoryBadge cat={n.category} />
@@ -828,7 +915,9 @@ function NewsPage() {
                               src={img.url}
                               alt={img.name}
                               className="h-full w-full object-cover cursor-zoom-in"
-                              onClick={() => openMedia({ type: "image", src: img.url, alt: img.name })}
+                              onClick={() =>
+                                openMedia({ type: "image", src: img.url, alt: img.name })
+                              }
                             />
                             <button
                               onClick={() => removeImage(img.id)}
@@ -875,11 +964,7 @@ function NewsPage() {
                             className="group relative rounded-lg border bg-muted overflow-hidden"
                           >
                             <div className="relative w-full aspect-video bg-black">
-                              <video
-                                src={vid.url}
-                                controls
-                                className="w-full h-full"
-                              />
+                              <video src={vid.url} controls className="w-full h-full" />
                               <button
                                 type="button"
                                 onClick={() => openMedia({ type: "video", src: vid.url })}
@@ -887,8 +972,19 @@ function NewsPage() {
                                 aria-label="ເບິ່ງເຕັມຈໍ"
                                 title="ເບິ່ງເຕັມຈໍ"
                               >
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-                                  <path d="M15 3h6v6"/><path d="M9 21H3v-6"/><path d="M21 3l-7 7"/><path d="M3 21l7-7"/>
+                                <svg
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  className="w-3.5 h-3.5"
+                                >
+                                  <path d="M15 3h6v6" />
+                                  <path d="M9 21H3v-6" />
+                                  <path d="M21 3l-7 7" />
+                                  <path d="M3 21l7-7" />
                                 </svg>
                               </button>
                             </div>
@@ -921,7 +1017,15 @@ function NewsPage() {
       </Dialog>
 
       {/* ── Create / Edit News Dialog ── */}
-      <Dialog open={showModal} onOpenChange={(o) => { setShowModal(o); if (!o) { setEditingNews(null); } }}>
+      <Dialog
+        open={showModal}
+        onOpenChange={(o) => {
+          setShowModal(o);
+          if (!o) {
+            setEditingNews(null);
+          }
+        }}
+      >
         <DialogContent className="max-w-lg w-full max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -931,23 +1035,47 @@ function NewsPage() {
           <div className="space-y-4">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">ຫົວຂໍ້ຂ່າວ*</label>
-              <Input value={newsForm.title} onChange={(e) => setNF("title", e.target.value)} placeholder="ຫົວຂໍ້..." className="h-9 text-sm" />
+              <Input
+                value={newsForm.title}
+                onChange={(e) => setNF("title", e.target.value)}
+                placeholder="ຫົວຂໍ້..."
+                className="h-9 text-sm"
+              />
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">ຄຳອະທິບາຍສັ້ນ</label>
-              <Input value={newsForm.summary} onChange={(e) => setNF("summary", e.target.value)} placeholder="ສະຫຼຸບຂ່າວ..." className="h-9 text-sm" />
+              <Input
+                value={newsForm.summary}
+                onChange={(e) => setNF("summary", e.target.value)}
+                placeholder="ສະຫຼຸບຂ່າວ..."
+                className="h-9 text-sm"
+              />
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">ແທັກ</label>
-              <Input value={newsForm.tags} onChange={(e) => setNF("tags", e.target.value)} placeholder="ແທັກ, ຂັ້ນດ້ວຍ comma" className="h-9 text-sm" />
+              <Input
+                value={newsForm.tags}
+                onChange={(e) => setNF("tags", e.target.value)}
+                placeholder="ແທັກ, ຂັ້ນດ້ວຍ comma"
+                className="h-9 text-sm"
+              />
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">ວັນທີເຜີຍແຜ່</label>
-              <Input type="date" value={newsForm.date} onChange={(e) => setNF("date", e.target.value)} className="h-9 text-sm" />
+              <Input
+                type="date"
+                value={newsForm.date}
+                onChange={(e) => setNF("date", e.target.value)}
+                className="h-9 text-sm"
+              />
             </div>
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">ໝວດໝູ່*</label>
-              <select value={newsForm.category} onChange={(e) => setNF("category", e.target.value)} className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring">
+              <select
+                value={newsForm.category}
+                onChange={(e) => setNF("category", e.target.value)}
+                className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+              >
                 <option value="">ເລືອກໝວດ...</option>
                 {["ປະກາດ", "ກິດຈະກຳ", "ປະຊຸມ", "ການເງິນ", "ລຳລຶກ", "ດ່ວນ"].map((o) => (
                   <option key={o}>{o}</option>
@@ -970,19 +1098,42 @@ function NewsPage() {
                 ["featured", Star, "ເດັ່ນ"],
                 ["urgent", Zap, "ດ່ວນ"],
               ].map(([key, Icon, label]: any) => (
-                <label key={key} className="flex items-center gap-1.5 cursor-pointer text-sm text-muted-foreground">
-                  <input type="checkbox" className="accent-primary" checked={!!newsForm[key]} onChange={(e) => setNF(key, e.target.checked)} />
+                <label
+                  key={key}
+                  className="flex items-center gap-1.5 cursor-pointer text-sm text-muted-foreground"
+                >
+                  <input
+                    type="checkbox"
+                    className="accent-primary"
+                    checked={!!newsForm[key]}
+                    onChange={(e) => setNF(key, e.target.checked)}
+                  />
                   <Icon className="h-3.5 w-3.5" /> {label}
                 </label>
               ))}
             </div>
             <Separator />
             <div className="flex gap-2 pt-1">
-              <Button variant="outline" className="flex-1" onClick={() => { setShowModal(false); setEditingNews(null); }}>
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  setShowModal(false);
+                  setEditingNews(null);
+                }}
+              >
                 ຍົກເລີກ
               </Button>
               <Button className="flex-1 gap-1.5" onClick={saveNews}>
-                {editingNews ? (<><Save className="h-4 w-4" /> ບັນທຶກ</>) : (<><Send className="h-4 w-4" /> ເຜີຍແຜ່</>)}
+                {editingNews ? (
+                  <>
+                    <Save className="h-4 w-4" /> ບັນທຶກ
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4" /> ເຜີຍແຜ່
+                  </>
+                )}
               </Button>
             </div>
           </div>
@@ -990,17 +1141,28 @@ function NewsPage() {
       </Dialog>
 
       {/* Delete confirmation */}
-      <AlertDialog open={!!deletingNews} onOpenChange={(o) => { if (!o) setDeletingNews(null); }}>
+      <AlertDialog
+        open={!!deletingNews}
+        onOpenChange={(o) => {
+          if (!o) setDeletingNews(null);
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>ຢືນຢັນການລຶບຂ່າວ</AlertDialogTitle>
             <AlertDialogDescription>
-              ທ່ານແນ່ໃຈບໍ່ວ່າຈະລຶບຂ່າວ "<span className="font-semibold">{deletingNews?.title}</span>"? ການກະທຳນີ້ບໍ່ສາມາດກັບຄືນໄດ້.
+              ທ່ານແນ່ໃຈບໍ່ວ່າຈະລຶບຂ່າວ "<span className="font-semibold">{deletingNews?.title}</span>"?
+              ການກະທຳນີ້ບໍ່ສາມາດກັບຄືນໄດ້.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>ຍົກເລີກ</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">ລຶບ</AlertDialogAction>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              ລຶບ
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

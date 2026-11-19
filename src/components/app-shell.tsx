@@ -38,15 +38,12 @@ import {
 import { useMembers } from "@/lib/members-data";
 import { BackToHomeButton } from "@/components/enterprise/back-to-home-button";
 
-
 // ---------- Theme toggle (persisted) ----------
 function useTheme() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   useEffect(() => {
     const saved = (typeof window !== "undefined" && localStorage.getItem("theme")) as
-      | "light"
-      | "dark"
-      | null;
+      "light" | "dark" | null;
     const initial: "light" | "dark" =
       saved ?? (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
     setTheme(initial);
@@ -66,7 +63,13 @@ function useTheme() {
 }
 
 // ---------- Global Command Palette (⌘K) ----------
-function GlobalSearch({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+function GlobalSearch({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
   const navigate = useNavigate();
   const [q, setQ] = useState("");
   const pages = [
@@ -77,9 +80,11 @@ function GlobalSearch({ open, onOpenChange }: { open: boolean; onOpenChange: (v:
   ];
   const members = useMembers();
   const matched = q
-    ? members.filter((m: any) =>
-        `${m.name} ${m.nickname ?? ""} ${m.role ?? ""}`.toLowerCase().includes(q.toLowerCase()),
-      ).slice(0, 8)
+    ? members
+        .filter((m: any) =>
+          `${m.name} ${m.nickname ?? ""} ${m.role ?? ""}`.toLowerCase().includes(q.toLowerCase()),
+        )
+        .slice(0, 8)
     : [];
 
   const go = (to: string, search?: Record<string, unknown>) => {
@@ -105,10 +110,7 @@ function GlobalSearch({ open, onOpenChange }: { open: boolean; onOpenChange: (v:
             <CommandSeparator />
             <CommandGroup heading="ສະມາຊິກ">
               {matched.map((m: any) => (
-                <CommandItem
-                  key={m.id}
-                  onSelect={() => go("/members", { member: m.id })}
-                >
+                <CommandItem key={m.id} onSelect={() => go("/members", { member: m.id })}>
                   <Users className="mr-2 h-4 w-4 text-primary" />
                   <span className="font-medium">{m.name}</span>
                   <span className="ml-2 text-xs text-muted-foreground">{m.role}</span>
@@ -166,15 +168,10 @@ function Header({ onOpenSearch }: { onOpenSearch: () => void }) {
 
       {/* Page title */}
       <div className="flex min-w-0 items-center gap-2">
-
         <div className="min-w-0">
-          <h1 className="truncate text-[15px] font-semibold tracking-tight">
-            {title}
-          </h1>
+          <h1 className="truncate text-[15px] font-semibold tracking-tight">{title}</h1>
         </div>
-
       </div>
-
 
       <div className="flex items-center gap-1 justify-self-end">
         <button
@@ -190,7 +187,11 @@ function Header({ onOpenSearch }: { onOpenSearch: () => void }) {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative h-9 w-9 text-muted-foreground hover:text-foreground">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative h-9 w-9 text-muted-foreground hover:text-foreground"
+            >
               <Bell className="h-[18px] w-[18px]" strokeWidth={1.85} />
               {notifCount > 0 && (
                 <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-destructive ring-2 ring-background" />
@@ -215,8 +216,18 @@ function Header({ onOpenSearch }: { onOpenSearch: () => void }) {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Button variant="ghost" size="icon" className="h-9 w-9 text-muted-foreground hover:text-foreground" onClick={toggle} aria-label="theme">
-          {theme === "dark" ? <Sun className="h-[18px] w-[18px]" strokeWidth={1.85} /> : <Moon className="h-[18px] w-[18px]" strokeWidth={1.85} />}
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9 text-muted-foreground hover:text-foreground"
+          onClick={toggle}
+          aria-label="theme"
+        >
+          {theme === "dark" ? (
+            <Sun className="h-[18px] w-[18px]" strokeWidth={1.85} />
+          ) : (
+            <Moon className="h-[18px] w-[18px]" strokeWidth={1.85} />
+          )}
         </Button>
         <SessionControl />
       </div>
@@ -224,13 +235,14 @@ function Header({ onOpenSearch }: { onOpenSearch: () => void }) {
   );
 }
 
-
 function SessionControl() {
   const { session, logout } = useAuth();
   if (session.role === "guest") {
     return (
       <div className="flex items-center gap-1.5">
-        <Badge variant="secondary" className="hidden sm:inline-flex text-[10px] font-medium">ຜູ້ຢ້ຽມຊົມ</Badge>
+        <Badge variant="secondary" className="hidden sm:inline-flex text-[10px] font-medium">
+          ຜູ້ຢ້ຽມຊົມ
+        </Badge>
         <Link to="/login">
           <Button size="sm" variant="default" className="h-9 gap-1.5">
             <LogIn className="h-4 w-4" />
@@ -284,7 +296,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <AppSidebar />
       <SidebarInset className="bg-background">
         <Header onOpenSearch={() => setSearchOpen(true)} />
-        <main id="main-content" className="flex-1 pb-8">{children}</main>
+        <main id="main-content" className="flex-1 pb-8">
+          {children}
+        </main>
       </SidebarInset>
       <GlobalSearch open={searchOpen} onOpenChange={setSearchOpen} />
     </SidebarProvider>

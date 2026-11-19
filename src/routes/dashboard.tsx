@@ -30,12 +30,14 @@ import { useElders } from "@/lib/elders-store";
 import { useNews } from "@/lib/news-store";
 import { ViewAllButton } from "@/components/enterprise/view-all-button";
 
-
 // Derive avatar initials from a member's Lao name (skip the ທ້າວ/ນາງ prefix).
 const deriveInitials = (name) => {
   const parts = String(name).trim().split(/\s+/).filter(Boolean);
   const pick = parts.length >= 3 ? parts.slice(1) : parts;
-  return pick.slice(0, 2).map((w) => w[0]).join("");
+  return pick
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("");
 };
 
 const roleColorFor = (role = "") =>
@@ -47,108 +49,260 @@ const roleColorFor = (role = "") =>
 
 const icons = {
   dashboard: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-      <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="3" width="7" height="7" rx="1" />
+      <rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" />
+      <rect x="14" y="14" width="7" height="7" rx="1" />
     </svg>
   ),
   members: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
     </svg>
   ),
-  leadership: (
-    <Crown className="h-full w-full" strokeWidth={1.8} />
-  ),
-  elders: (
-    <Award className="h-full w-full" strokeWidth={1.8} />
-  ),
+  leadership: <Crown className="h-full w-full" strokeWidth={1.8} />,
+  elders: <Award className="h-full w-full" strokeWidth={1.8} />,
   activities: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/>
-      <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
     </svg>
   ),
   finance: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="12" y1="1" x2="12" y2="23" />
+      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
     </svg>
   ),
   news: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/>
-      <path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2" />
+      <path d="M18 14h-8" />
+      <path d="M15 18h-5" />
+      <path d="M10 6h8v4h-8V6Z" />
     </svg>
   ),
   trend_up: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+      <polyline points="17 6 23 6 23 12" />
     </svg>
   ),
   plus: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
     </svg>
   ),
   tree: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="9" y="2" width="6" height="5" rx="1"/>
-      <rect x="2" y="17" width="6" height="5" rx="1"/>
-      <rect x="9" y="17" width="6" height="5" rx="1"/>
-      <rect x="16" y="17" width="6" height="5" rx="1"/>
-      <path d="M12 7v4"/>
-      <path d="M5 17v-3h14v3"/>
-      <path d="M12 14v3"/>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="9" y="2" width="6" height="5" rx="1" />
+      <rect x="2" y="17" width="6" height="5" rx="1" />
+      <rect x="9" y="17" width="6" height="5" rx="1" />
+      <rect x="16" y="17" width="6" height="5" rx="1" />
+      <path d="M12 7v4" />
+      <path d="M5 17v-3h14v3" />
+      <path d="M12 14v3" />
     </svg>
   ),
   upload: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-      <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="17 8 12 3 7 8" />
+      <line x1="12" y1="3" x2="12" y2="15" />
     </svg>
   ),
   chevron: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="9 18 15 12 9 6"/>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polyline points="9 18 15 12 9 6" />
     </svg>
   ),
   pin: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="12" y1="17" x2="12" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <line x1="12" y1="17" x2="12" y2="22" />
+      <path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z" />
     </svg>
   ),
   calendar: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/>
-      <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
     </svg>
   ),
   location: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+      <circle cx="12" cy="10" r="3" />
     </svg>
   ),
   users: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
     </svg>
   ),
   check_circle: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-      <polyline points="22 4 12 14.01 9 11.01"/>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+      <polyline points="22 4 12 14.01 9 11.01" />
     </svg>
   ),
 };
 
 const quickActions = [
-  { label: "ເພີ່ມສະມາຊິກ", icon: "members", colorClass: "text-emerald-600", bgClass: "bg-emerald-500/10", to: "/members", search: { action: "add" } },
-  { label: "ສ້າງກິດຈະກຳ", icon: "activities", colorClass: "text-amber-600", bgClass: "bg-amber-500/10", to: "/activities", search: { action: "add" } },
-  { label: "ເພີ່ມຂ່າວ", icon: "news", colorClass: "text-pink-600", bgClass: "bg-pink-500/10", to: "/news", search: { action: "add" } },
-  { label: "ຈັດການຄະນະນຳ", icon: "leadership", colorClass: "text-orange-600", bgClass: "bg-orange-500/10", to: "/leadership" },
-  { label: "ຈັດການຄັງເງິນ", icon: "finance", colorClass: "text-emerald-600", bgClass: "bg-emerald-500/10", to: "/finance" },
+  {
+    label: "ເພີ່ມສະມາຊິກ",
+    icon: "members",
+    colorClass: "text-emerald-600",
+    bgClass: "bg-emerald-500/10",
+    to: "/members",
+    search: { action: "add" },
+  },
+  {
+    label: "ສ້າງກິດຈະກຳ",
+    icon: "activities",
+    colorClass: "text-amber-600",
+    bgClass: "bg-amber-500/10",
+    to: "/activities",
+    search: { action: "add" },
+  },
+  {
+    label: "ເພີ່ມຂ່າວ",
+    icon: "news",
+    colorClass: "text-pink-600",
+    bgClass: "bg-pink-500/10",
+    to: "/news",
+    search: { action: "add" },
+  },
+  {
+    label: "ຈັດການຄະນະນຳ",
+    icon: "leadership",
+    colorClass: "text-orange-600",
+    bgClass: "bg-orange-500/10",
+    to: "/leadership",
+  },
+  {
+    label: "ຈັດການຄັງເງິນ",
+    icon: "finance",
+    colorClass: "text-emerald-600",
+    bgClass: "bg-emerald-500/10",
+    to: "/finance",
+  },
 ];
 
 // News preview is now read live from the news store inside the component.
@@ -164,7 +318,10 @@ function BarChart({ data }) {
             className="w-full rounded-t-sm transition-all duration-300"
             style={{
               height: `${(d.value / max) * 64}px`,
-              backgroundColor: i === data.length - 1 ? "var(--color-emerald-500, #10b981)" : "var(--color-emerald-200, #a7f3d0)",
+              backgroundColor:
+                i === data.length - 1
+                  ? "var(--color-emerald-500, #10b981)"
+                  : "var(--color-emerald-200, #a7f3d0)",
             }}
           />
           <span className="text-[10px] text-muted-foreground">{d.label}</span>
@@ -178,7 +335,10 @@ function BarChart({ data }) {
 function DonutChart({ segments }) {
   const total = segments.reduce((a, b) => a + b.value, 0);
   let offset = 0;
-  const r = 36, cx = 44, cy = 44, circ = 2 * Math.PI * r;
+  const r = 36,
+    cx = 44,
+    cy = 44,
+    circ = 2 * Math.PI * r;
   return (
     <svg width="88" height="88" viewBox="0 0 88 88" className="shrink-0">
       {segments.map((seg, i) => {
@@ -187,8 +347,13 @@ function DonutChart({ segments }) {
         const gap = circ - dash;
         const el = (
           <circle
-            key={i} cx={cx} cy={cy} r={r} fill="none"
-            stroke={seg.color} strokeWidth="12"
+            key={i}
+            cx={cx}
+            cy={cy}
+            r={r}
+            fill="none"
+            stroke={seg.color}
+            strokeWidth="12"
             strokeDasharray={`${dash} ${gap}`}
             strokeDashoffset={-offset * circ + circ / 4}
             style={{ transition: "stroke-dasharray 0.5s ease" }}
@@ -198,7 +363,9 @@ function DonutChart({ segments }) {
         return el;
       })}
       <circle cx={cx} cy={cy} r="24" fill="white" />
-      <text x={cx} y={cy + 5} textAnchor="middle" fontSize="11" fill="#374151" fontWeight="600">{total}</text>
+      <text x={cx} y={cy + 5} textAnchor="middle" fontSize="11" fill="#374151" fontWeight="600">
+        {total}
+      </text>
     </svg>
   );
 }
@@ -241,10 +408,16 @@ function DashboardPage() {
   const eventsPast = eventsAll.filter((e: any) => getEventStatus(e) === "past").length;
 
   // ----- Finance stats from transactions store -----
-  const income = txns.filter((t: any) => t.direction !== "expense").reduce((a: number, t: any) => a + Math.abs(t.amount || 0), 0);
-  const expense = txns.filter((t: any) => t.direction === "expense").reduce((a: number, t: any) => a + Math.abs(t.amount || 0), 0);
+  const income = txns
+    .filter((t: any) => t.direction !== "expense")
+    .reduce((a: number, t: any) => a + Math.abs(t.amount || 0), 0);
+  const expense = txns
+    .filter((t: any) => t.direction === "expense")
+    .reduce((a: number, t: any) => a + Math.abs(t.amount || 0), 0);
   const balance = income - expense;
-  const donors = new Set(txns.filter((t: any) => t.direction !== "expense").map((t: any) => t.donor || t.from || t.note)).size;
+  const donors = new Set(
+    txns.filter((t: any) => t.direction !== "expense").map((t: any) => t.donor || t.from || t.note),
+  ).size;
 
   const fmtKip = (n: number) => {
     const abs = Math.abs(n);
@@ -253,16 +426,70 @@ function DashboardPage() {
     return `₭ ${n.toLocaleString()}`;
   };
 
-  const latestGen = generations.size ? Math.max(...Array.from(generations as Set<number>).map(Number).filter((n) => !Number.isNaN(n))) : 0;
+  const latestGen = generations.size
+    ? Math.max(
+        ...Array.from(generations as Set<number>)
+          .map(Number)
+          .filter((n) => !Number.isNaN(n)),
+      )
+    : 0;
   const latestNewsCount = newsStore.length;
 
   const stats = [
-    { label: "ສະມາຊິກທັງໝົດ", value: String(totalMembers), growth: `${aliveCount} ເຄື່ອນໄຫວ · ${deceasedCount} ລ່ວງລັບ`, icon: "members", colorClass: "text-primary", bgClass: "bg-primary/8", to: "/members" },
-    { label: "ຄະນະນຳ", value: String(leadersCount), growth: "ຄະນະນຳປັດຈຸບັນ", icon: "leadership", colorClass: "text-primary", bgClass: "bg-primary/8", to: "/leadership" },
-    { label: "ຜູ້ອາວຸໂສ", value: String(eldersCount), growth: "ລາຍຊື່ຜູ້ອາວຸໂສ", icon: "elders", colorClass: "text-primary", bgClass: "bg-primary/8", to: "/elders" },
-    { label: "ຈຳນວນລຸ້ນ", value: String(totalGens), growth: latestGen ? `ລຸ້ນລ່າສຸດ: ລຸ້ນທີ ${latestGen} (Phaj ${latestGen})` : `${totalBranches} ກຸ່ມ`, icon: "tree", colorClass: "text-primary", bgClass: "bg-primary/8", to: "/members" },
-    { label: "ກິດຈະກຳ", value: String(eventsAll.length), growth: `${eventsUpcoming} ກຳລັງຈະຈັດ · ${eventsPast} ຜ່ານມາແລ້ວ`, icon: "activities", colorClass: "text-primary", bgClass: "bg-primary/8", to: "/activities" },
-    { label: "ຂ່າວສານ", value: String(latestNewsCount), growth: latestNewsCount ? "ຂ່າວທັງໝົດ" : "ຍັງບໍ່ມີຂ່າວ", icon: "news", colorClass: "text-primary", bgClass: "bg-primary/8", to: "/news" },
+    {
+      label: "ສະມາຊິກທັງໝົດ",
+      value: String(totalMembers),
+      growth: `${aliveCount} ເຄື່ອນໄຫວ · ${deceasedCount} ລ່ວງລັບ`,
+      icon: "members",
+      colorClass: "text-primary",
+      bgClass: "bg-primary/8",
+      to: "/members",
+    },
+    {
+      label: "ຄະນະນຳ",
+      value: String(leadersCount),
+      growth: "ຄະນະນຳປັດຈຸບັນ",
+      icon: "leadership",
+      colorClass: "text-primary",
+      bgClass: "bg-primary/8",
+      to: "/leadership",
+    },
+    {
+      label: "ຜູ້ອາວຸໂສ",
+      value: String(eldersCount),
+      growth: "ລາຍຊື່ຜູ້ອາວຸໂສ",
+      icon: "elders",
+      colorClass: "text-primary",
+      bgClass: "bg-primary/8",
+      to: "/elders",
+    },
+    {
+      label: "ຈຳນວນລຸ້ນ",
+      value: String(totalGens),
+      growth: latestGen ? `ລຸ້ນລ່າສຸດ: ລຸ້ນທີ ${latestGen} (Phaj ${latestGen})` : `${totalBranches} ກຸ່ມ`,
+      icon: "tree",
+      colorClass: "text-primary",
+      bgClass: "bg-primary/8",
+      to: "/members",
+    },
+    {
+      label: "ກິດຈະກຳ",
+      value: String(eventsAll.length),
+      growth: `${eventsUpcoming} ກຳລັງຈະຈັດ · ${eventsPast} ຜ່ານມາແລ້ວ`,
+      icon: "activities",
+      colorClass: "text-primary",
+      bgClass: "bg-primary/8",
+      to: "/activities",
+    },
+    {
+      label: "ຂ່າວສານ",
+      value: String(latestNewsCount),
+      growth: latestNewsCount ? "ຂ່າວທັງໝົດ" : "ຍັງບໍ່ມີຂ່າວ",
+      icon: "news",
+      colorClass: "text-primary",
+      bgClass: "bg-primary/8",
+      to: "/news",
+    },
   ];
 
   // ----- Recent members (highest id = newest) -----
@@ -270,8 +497,12 @@ function DashboardPage() {
     .sort((a: any, b: any) => b.id - a.id)
     .slice(0, 5)
     .map((m: any) => ({
-      id: m.id, name: m.name, gen: `ລຸ້ນທີ ${m.gen} (Phaj ${m.gen})`, role: m.role,
-      initials: deriveInitials(m.name), roleColor: roleColorFor(m.role),
+      id: m.id,
+      name: m.name,
+      gen: `ລຸ້ນທີ ${m.gen} (Phaj ${m.gen})`,
+      role: m.role,
+      initials: deriveInitials(m.name),
+      roleColor: roleColorFor(m.role),
     }));
 
   // ----- Top leaders preview (store first, fallback to derived list from members)
@@ -303,7 +534,9 @@ function DashboardPage() {
   // ----- Events preview (upcoming first, then past) -----
   const eventsPreview = [...eventsAll]
     .map((e: any) => ({ ...e, _status: getEventStatus(e) }))
-    .sort((a: any, b: any) => (a._status === "upcoming" ? -1 : 1) - (b._status === "upcoming" ? -1 : 1))
+    .sort(
+      (a: any, b: any) => (a._status === "upcoming" ? -1 : 1) - (b._status === "upcoming" ? -1 : 1),
+    )
     .slice(0, 3)
     .map((e: any) => ({
       id: e.id,
@@ -342,15 +575,13 @@ function DashboardPage() {
 
   // ----- Elders preview (store first, fallback to derived list from members)
   const eldersSource = eldersAll;
-  const eldersPreview = [...eldersSource]
-    .slice(0, 4)
-    .map((e: any) => ({
-      id: e.id,
-      name: e.name || "—",
-      role: e.role || e.position || "ຜູ້ອາວຸໂສ",
-      gen: e.generation || (e.gen ? `ລຸ້ນທີ ${e.gen} (Phaj ${e.gen})` : ""),
-      initials: e.initials || deriveInitials(e.name || ""),
-    }));
+  const eldersPreview = [...eldersSource].slice(0, 4).map((e: any) => ({
+    id: e.id,
+    name: e.name || "—",
+    role: e.role || e.position || "ຜູ້ອາວຸໂສ",
+    gen: e.generation || (e.gen ? `ລຸ້ນທີ ${e.gen} (Phaj ${e.gen})` : ""),
+    initials: e.initials || deriveInitials(e.name || ""),
+  }));
 
   // ----- Upcoming activities -----
   const upcomingEvents = eventsAll
@@ -372,7 +603,11 @@ function DashboardPage() {
   for (let i = 5; i >= 0; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
-    monthsArr.push({ key, label: `${d.getMonth() + 1}/${String(d.getFullYear()).slice(2)}`, value: 0 });
+    monthsArr.push({
+      key,
+      label: `${d.getMonth() + 1}/${String(d.getFullYear()).slice(2)}`,
+      value: 0,
+    });
   }
   for (const e of eventsAll as any[]) {
     const k = String(e.date || "").slice(0, 7);
@@ -382,7 +617,6 @@ function DashboardPage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl space-y-6 p-4 md:p-6 lg:p-8">
-
       {/* Page header — clean, professional */}
       <div className="flex flex-col gap-3 pb-1 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
@@ -394,12 +628,8 @@ function DashboardPage() {
           </p>
         </div>
         <div className="text-left sm:text-right sm:pt-1">
-          <p className="text-sm font-semibold text-foreground">
-            {today.weekday}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            {today.full}
-          </p>
+          <p className="text-sm font-semibold text-foreground">{today.weekday}</p>
+          <p className="text-xs text-muted-foreground">{today.full}</p>
         </div>
       </div>
 
@@ -413,12 +643,16 @@ function DashboardPage() {
           >
             <CardContent className="space-y-3 p-4">
               <div className="flex items-center justify-between">
-                <div className={`flex h-9 w-9 items-center justify-center rounded-md ${s.bgClass} ${s.colorClass}`}>
+                <div
+                  className={`flex h-9 w-9 items-center justify-center rounded-md ${s.bgClass} ${s.colorClass}`}
+                >
                   <span className="h-[18px] w-[18px]">{icons[s.icon] || icons.members}</span>
                 </div>
               </div>
               <div>
-                <p className="text-[22px] font-semibold tracking-tight text-foreground">{s.value}</p>
+                <p className="text-[22px] font-semibold tracking-tight text-foreground">
+                  {s.value}
+                </p>
                 <p className="mt-0.5 text-[11.5px] font-medium text-muted-foreground">{s.label}</p>
                 <p className="mt-1.5 text-[10.5px] text-muted-foreground/80">{s.growth}</p>
               </div>
@@ -430,7 +664,9 @@ function DashboardPage() {
       {/* Quick Actions */}
       <Card className="quick-actions rounded-lg border border-border bg-card shadow-none">
         <CardHeader className="pb-3">
-          <CardTitle className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">ການດຳເນີນການດ່ວນ</CardTitle>
+          <CardTitle className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">
+            ການດຳເນີນການດ່ວນ
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-8">
@@ -443,7 +679,9 @@ function DashboardPage() {
                 <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/8 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                   <span className="h-[16px] w-[16px]">{icons[a.icon] || icons.plus}</span>
                 </div>
-                <span className="text-[11px] font-medium leading-tight text-muted-foreground group-hover:text-foreground">{a.label}</span>
+                <span className="text-[11px] font-medium leading-tight text-muted-foreground group-hover:text-foreground">
+                  {a.label}
+                </span>
               </button>
             ))}
           </div>
@@ -452,17 +690,21 @@ function DashboardPage() {
 
       {/* Row: Recent Members + Finance */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
         {/* Recent Members */}
         <Card className="rounded-lg border border-border bg-card shadow-none">
           <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">ສະມາຊິກໃໝ່</CardTitle>
+            <CardTitle className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">
+              ສະມາຊິກໃໝ່
+            </CardTitle>
             <ViewAllButton to="/members" />
-
           </CardHeader>
           <CardContent className="space-y-1">
             {recentMembers.map((m, i) => (
-              <div key={i} onClick={() => navigate({ to: "/members", search: { member: m.id } })} className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-muted/60">
+              <div
+                key={i}
+                onClick={() => navigate({ to: "/members", search: { member: m.id } })}
+                className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-muted/60"
+              >
                 <Avatar className="h-9 w-9 shrink-0 rounded-md">
                   <AvatarFallback className="rounded-md bg-primary/8 text-xs font-semibold text-primary">
                     {m.initials}
@@ -472,7 +714,10 @@ function DashboardPage() {
                   <p className="truncate text-sm font-medium">{m.name}</p>
                   <p className="text-xs text-muted-foreground">{m.gen}</p>
                 </div>
-                <Badge variant="secondary" className="shrink-0 border-0 bg-muted text-[10px] font-medium text-muted-foreground">
+                <Badge
+                  variant="secondary"
+                  className="shrink-0 border-0 bg-muted text-[10px] font-medium text-muted-foreground"
+                >
                   {m.role}
                 </Badge>
               </div>
@@ -483,17 +728,38 @@ function DashboardPage() {
         {/* Finance */}
         <Card className="rounded-lg border border-border bg-card shadow-none">
           <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">ສະຫຼຸບການເງິນ</CardTitle>
+            <CardTitle className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">
+              ສະຫຼຸບການເງິນ
+            </CardTitle>
             <ViewAllButton to="/finance" />
-
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               {[
-                { label: "ຍອດຄົງເຫຼືອ", value: fmtKip(balance), colorClass: "text-foreground", bgClass: "bg-muted/60" },
-                { label: "ລາຍຮັບ", value: fmtKip(income), colorClass: "text-emerald-700 dark:text-emerald-400", bgClass: "bg-muted/60" },
-                { label: "ລາຍຈ່າຍ", value: fmtKip(expense), colorClass: "text-rose-700 dark:text-rose-400", bgClass: "bg-muted/60" },
-                { label: "ທຸລະກຳ", value: String(txns.length), colorClass: "text-foreground", bgClass: "bg-muted/60" },
+                {
+                  label: "ຍອດຄົງເຫຼືອ",
+                  value: fmtKip(balance),
+                  colorClass: "text-foreground",
+                  bgClass: "bg-muted/60",
+                },
+                {
+                  label: "ລາຍຮັບ",
+                  value: fmtKip(income),
+                  colorClass: "text-emerald-700 dark:text-emerald-400",
+                  bgClass: "bg-muted/60",
+                },
+                {
+                  label: "ລາຍຈ່າຍ",
+                  value: fmtKip(expense),
+                  colorClass: "text-rose-700 dark:text-rose-400",
+                  bgClass: "bg-muted/60",
+                },
+                {
+                  label: "ທຸລະກຳ",
+                  value: String(txns.length),
+                  colorClass: "text-foreground",
+                  bgClass: "bg-muted/60",
+                },
               ].map((f, i) => (
                 <div key={i} className={`rounded-md border border-border p-3 ${f.bgClass}`}>
                   <p className="text-[11px] font-medium text-muted-foreground">{f.label}</p>
@@ -514,7 +780,9 @@ function DashboardPage() {
                         <p className="text-sm">{t.desc}</p>
                         <p className="text-xs text-muted-foreground">{t.date}</p>
                       </div>
-                      <span className={`text-sm font-semibold ${t.type === "in" ? "text-emerald-700 dark:text-emerald-400" : "text-rose-700 dark:text-rose-400"}`}>
+                      <span
+                        className={`text-sm font-semibold ${t.type === "in" ? "text-emerald-700 dark:text-emerald-400" : "text-rose-700 dark:text-rose-400"}`}
+                      >
                         {t.amount}
                       </span>
                     </div>
@@ -529,11 +797,12 @@ function DashboardPage() {
 
       {/* Row: Leadership + Events */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
         {/* Leadership */}
         <Card className="rounded-lg border border-border bg-card shadow-none">
           <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">ຄະນະນຳ</CardTitle>
+            <CardTitle className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">
+              ຄະນະນຳ
+            </CardTitle>
             <ViewAllButton to="/leadership" />
           </CardHeader>
 
@@ -552,9 +821,13 @@ function DashboardPage() {
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold">{l.name}</p>
                   <p className="truncate text-xs font-medium text-primary">{l.position}</p>
-                  <p className="text-xs text-muted-foreground">{l.gen} · {l.branch}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {l.gen} · {l.branch}
+                  </p>
                 </div>
-                <span className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground">{icons.chevron}</span>
+                <span className="h-4 w-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground">
+                  {icons.chevron}
+                </span>
               </div>
             ))}
           </CardContent>
@@ -563,7 +836,9 @@ function DashboardPage() {
         {/* Events */}
         <Card className="rounded-lg border border-border bg-card shadow-none">
           <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">ກິດຈະກຳ</CardTitle>
+            <CardTitle className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">
+              ກິດຈະກຳ
+            </CardTitle>
             <ViewAllButton to="/activities" />
           </CardHeader>
 
@@ -608,13 +883,13 @@ function DashboardPage() {
 
       {/* Row: News + Statistics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
         {/* News */}
         <Card className="rounded-lg border border-border bg-card shadow-none">
           <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">ຂ່າວສານ</CardTitle>
+            <CardTitle className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">
+              ຂ່າວສານ
+            </CardTitle>
             <ViewAllButton to="/news" />
-
           </CardHeader>
           <CardContent className="space-y-2">
             {newsPreview.length === 0 && (
@@ -638,14 +913,19 @@ function DashboardPage() {
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-sm font-semibold leading-snug">{n.title}</p>
                       {n.pinned && (
-                        <Badge variant="secondary" className="flex shrink-0 items-center gap-1 border-0 bg-primary/10 text-[10px] font-medium text-primary">
+                        <Badge
+                          variant="secondary"
+                          className="flex shrink-0 items-center gap-1 border-0 bg-primary/10 text-[10px] font-medium text-primary"
+                        >
                           <span className="h-3 w-3">{icons.pin}</span>
                           ປັກໝຸດ
                         </Badge>
                       )}
                     </div>
                     {n.summary && (
-                      <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{n.summary}</p>
+                      <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
+                        {n.summary}
+                      </p>
                     )}
                     <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                       <span>{n.cat}</span>
@@ -668,7 +948,9 @@ function DashboardPage() {
         {/* Statistics */}
         <Card className="rounded-lg border border-border bg-card shadow-none">
           <CardHeader className="pb-3">
-            <CardTitle className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">ສະຖິຕິ</CardTitle>
+            <CardTitle className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">
+              ສະຖິຕິ
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-5">
             <div>
@@ -686,7 +968,13 @@ function DashboardPage() {
                       <span className="font-semibold text-foreground">{fmtKip(b.value)}</span>
                     </div>
                     <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
-                      <div className="h-full rounded-full transition-all" style={{ width: `${(b.value / finBarMax) * 100}%`, backgroundColor: b.color }} />
+                      <div
+                        className="h-full rounded-full transition-all"
+                        style={{
+                          width: `${(b.value / finBarMax) * 100}%`,
+                          backgroundColor: b.color,
+                        }}
+                      />
                     </div>
                   </div>
                 ))}
@@ -700,7 +988,10 @@ function DashboardPage() {
                 <div className="space-y-2">
                   {genderData.map((g, i) => (
                     <div key={i} className="flex items-center gap-2">
-                      <span className="h-2.5 w-2.5 rounded-full shrink-0" style={{ backgroundColor: g.color }} />
+                      <span
+                        className="h-2.5 w-2.5 rounded-full shrink-0"
+                        style={{ backgroundColor: g.color }}
+                      />
                       <span className="text-xs text-muted-foreground">{g.label}</span>
                       <span className="text-xs font-semibold">{g.value}</span>
                     </div>
@@ -711,7 +1002,9 @@ function DashboardPage() {
             <Separator />
             <div>
               <p className="text-xs font-medium text-muted-foreground mb-3">ກິດຈະກຳ 6 ເດືອນຍ້ອນຫຼັງ</p>
-              <BarChart data={monthsArr.map(({ label, value }) => ({ label, value: value || 0 }))} />
+              <BarChart
+                data={monthsArr.map(({ label, value }) => ({ label, value: value || 0 }))}
+              />
             </div>
           </CardContent>
         </Card>
@@ -721,9 +1014,10 @@ function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="rounded-lg border border-border bg-card shadow-none">
           <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">ຜູ້ອາວຸໂສ</CardTitle>
+            <CardTitle className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">
+              ຜູ້ອາວຸໂສ
+            </CardTitle>
             <ViewAllButton to="/elders" />
-
           </CardHeader>
           <CardContent className="space-y-2">
             {eldersPreview.length === 0 && (
@@ -742,7 +1036,10 @@ function DashboardPage() {
                 </Avatar>
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold">{e.name}</p>
-                  <p className="truncate text-xs text-muted-foreground">{e.role}{e.gen ? ` · ${e.gen}` : ""}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {e.role}
+                    {e.gen ? ` · ${e.gen}` : ""}
+                  </p>
                 </div>
               </div>
             ))}
@@ -751,9 +1048,10 @@ function DashboardPage() {
 
         <Card className="rounded-lg border border-border bg-card shadow-none">
           <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">ກິດຈະກຳທີ່ກຳລັງຈະມາ</CardTitle>
+            <CardTitle className="text-[13px] font-semibold uppercase tracking-wider text-muted-foreground">
+              ກິດຈະກຳທີ່ກຳລັງຈະມາ
+            </CardTitle>
             <ViewAllButton to="/activities" />
-
           </CardHeader>
           <CardContent className="space-y-2">
             {upcomingEvents.length === 0 && (
@@ -767,21 +1065,35 @@ function DashboardPage() {
               >
                 <div className="flex items-start justify-between gap-2">
                   <p className="text-sm font-semibold leading-snug">{e.title}</p>
-                  <Badge variant="secondary" className="shrink-0 border-0 bg-primary/10 text-[10px] font-medium text-primary">
+                  <Badge
+                    variant="secondary"
+                    className="shrink-0 border-0 bg-primary/10 text-[10px] font-medium text-primary"
+                  >
                     ກຳລັງຈະມາ
                   </Badge>
                 </div>
                 <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><span className="h-3 w-3">{icons.calendar}</span>{e.date}{e.time ? ` · ${e.time}` : ""}</span>
-                  {e.location && <span className="flex items-center gap-1"><span className="h-3 w-3">{icons.location}</span>{e.location}</span>}
-                  <span className="flex items-center gap-1"><span className="h-3 w-3">{icons.users}</span>{e.attendees ?? 0}</span>
+                  <span className="flex items-center gap-1">
+                    <span className="h-3 w-3">{icons.calendar}</span>
+                    {e.date}
+                    {e.time ? ` · ${e.time}` : ""}
+                  </span>
+                  {e.location && (
+                    <span className="flex items-center gap-1">
+                      <span className="h-3 w-3">{icons.location}</span>
+                      {e.location}
+                    </span>
+                  )}
+                  <span className="flex items-center gap-1">
+                    <span className="h-3 w-3">{icons.users}</span>
+                    {e.attendees ?? 0}
+                  </span>
                 </div>
               </div>
             ))}
           </CardContent>
         </Card>
       </div>
-
     </div>
   );
 }

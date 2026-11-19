@@ -9,9 +9,28 @@ import { readColumns, ELDERS_PUBLIC_COLUMNS } from "@/lib/public-read";
 import { toast } from "sonner";
 
 const KNOWN = new Set([
-  "id","name","age","branch","phone","photo","note","memberId","member_id",
-  "position","bio","department","displayOrder","display_order","active",
-  "personType","person_type","createdAt","created_at","updatedAt","updated_at","data",
+  "id",
+  "name",
+  "age",
+  "branch",
+  "phone",
+  "photo",
+  "note",
+  "memberId",
+  "member_id",
+  "position",
+  "bio",
+  "department",
+  "displayOrder",
+  "display_order",
+  "active",
+  "personType",
+  "person_type",
+  "createdAt",
+  "created_at",
+  "updatedAt",
+  "updated_at",
+  "data",
 ]);
 
 function fromRow(r) {
@@ -54,7 +73,9 @@ function toRow(o) {
   if ("displayOrder" in o) row.display_order = Number(o.displayOrder) || 0;
   if ("active" in o) row.active = o.active !== false;
   const extra = {};
-  for (const k of Object.keys(o)) { if (!KNOWN.has(k)) extra[k] = o[k]; }
+  for (const k of Object.keys(o)) {
+    if (!KNOWN.has(k)) extra[k] = o[k];
+  }
   row.data = extra;
   return row;
 }
@@ -71,9 +92,18 @@ let loading = true;
 let loadError = null;
 const listeners = new Set();
 let initialized = false;
-function emit() { snapshot = sortItems(items); for (const l of listeners) l(); }
-function subscribe(cb) { ensureInit(); listeners.add(cb); return () => listeners.delete(cb); }
-function getSnapshot() { return snapshot; }
+function emit() {
+  snapshot = sortItems(items);
+  for (const l of listeners) l();
+}
+function subscribe(cb) {
+  ensureInit();
+  listeners.add(cb);
+  return () => listeners.delete(cb);
+}
+function getSnapshot() {
+  return snapshot;
+}
 
 async function hydrate() {
   const { data, error } = await supabase
@@ -82,7 +112,12 @@ async function hydrate() {
     .order("display_order", { ascending: true })
     .order("id", { ascending: true });
   loading = false;
-  if (error) { loadError = error; console.error("elders hydrate", error); emit(); return; }
+  if (error) {
+    loadError = error;
+    console.error("elders hydrate", error);
+    emit();
+    return;
+  }
   loadError = null;
   items = (data ?? []).map(fromRow);
   emit();
@@ -92,19 +127,30 @@ function ensureInit() {
   if (initialized || typeof window === "undefined") return;
   initialized = true;
   hydrate();
-  supabase.channel("realtime:elders")
+  supabase
+    .channel("realtime:elders")
     .on("postgres_changes", { event: "*", schema: "public", table: "elders" }, (payload) => {
       const { eventType, new: nr, old: or } = payload;
-      if (eventType === "INSERT") { const obj = fromRow(nr); if (!items.some((l) => l.id === obj.id)) items = [obj, ...items]; }
-      else if (eventType === "UPDATE") { items = items.map((l) => (l.id === nr.id ? fromRow(nr) : l)); }
-      else if (eventType === "DELETE") { items = items.filter((l) => l.id !== or.id); }
+      if (eventType === "INSERT") {
+        const obj = fromRow(nr);
+        if (!items.some((l) => l.id === obj.id)) items = [obj, ...items];
+      } else if (eventType === "UPDATE") {
+        items = items.map((l) => (l.id === nr.id ? fromRow(nr) : l));
+      } else if (eventType === "DELETE") {
+        items = items.filter((l) => l.id !== or.id);
+      }
       emit();
-    }).subscribe();
+    })
+    .subscribe();
 }
 
-export function getEldersState() { return { loading, error: loadError }; }
+export function getEldersState() {
+  return { loading, error: loadError };
+}
 
-export async function refreshElders() { await hydrate(); }
+export async function refreshElders() {
+  await hydrate();
+}
 
 export async function addElder(item) {
   if (!assertPermission("create", "elders")) return null;
@@ -115,7 +161,11 @@ export async function addElder(item) {
   const row = toRow({ ...item, displayOrder: nextOrder, active: item?.active !== false });
   delete row.id;
   const { data: inserted, error } = await supabase.from("elders").insert(row).select("*").single();
-  if (error) { console.error("addElder", error); toast.error("ບັນທຶກບໍ່ສຳເລັດ: " + error.message); return null; }
+  if (error) {
+    console.error("addElder", error);
+    toast.error("ບັນທຶກບໍ່ສຳເລັດ: " + error.message);
+    return null;
+  }
   const obj = fromRow(inserted);
   if (!items.some((l) => l.id === obj.id)) items = [obj, ...items];
   emit();
@@ -134,13 +184,18 @@ export async function updateElder(id, patch) {
   if (error) {
     console.error("updateElder", error);
     toast.error("ອັບເດດບໍ່ສຳເລັດ: " + error.message);
-    if (prev) { items = items.map((l) => (l.id === id ? prev : l)); emit(); }
+    if (prev) {
+      items = items.map((l) => (l.id === id ? prev : l));
+      emit();
+    }
     return false;
   }
   return true;
 }
 
-export async function toggleElderActive(id, active) { return updateElder(id, { active }); }
+export async function toggleElderActive(id, active) {
+  return updateElder(id, { active });
+}
 
 export async function reorderElder(id, displayOrder) {
   return updateElder(id, { displayOrder: Number(displayOrder) || 0 });
@@ -155,13 +210,16 @@ export async function deleteElder(id) {
   if (error) {
     console.error("deleteElder", error);
     toast.error("ລຶບບໍ່ສຳເລັດ: " + error.message);
-    items = prev; emit();
+    items = prev;
+    emit();
     return false;
   }
   return true;
 }
 
 export function useElders() {
-  useEffect(() => { ensureInit(); }, []);
+  useEffect(() => {
+    ensureInit();
+  }, []);
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }

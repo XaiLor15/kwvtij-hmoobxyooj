@@ -4,9 +4,7 @@ import { useSyncExternalStore, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export const NEWS_CATEGORIES = [
-  "ປະກາດ", "ກິດຈະກຳ", "ປະຊຸມ", "ການເງິນ", "ລຳລຶກ", "ດ່ວນ",
-];
+export const NEWS_CATEGORIES = ["ປະກາດ", "ກິດຈະກຳ", "ປະຊຸມ", "ການເງິນ", "ລຳລຶກ", "ດ່ວນ"];
 
 function fromRow(r) {
   return {
@@ -31,13 +29,25 @@ let news = [];
 let snapshot = [];
 const listeners = new Set();
 let initialized = false;
-function emit() { snapshot = news.slice(); for (const l of listeners) l(); }
-function subscribe(cb) { ensureInit(); listeners.add(cb); return () => listeners.delete(cb); }
-function getSnapshot() { return snapshot; }
+function emit() {
+  snapshot = news.slice();
+  for (const l of listeners) l();
+}
+function subscribe(cb) {
+  ensureInit();
+  listeners.add(cb);
+  return () => listeners.delete(cb);
+}
+function getSnapshot() {
+  return snapshot;
+}
 
 async function hydrate() {
   const { data, error } = await supabase.from("news").select("*").order("id", { ascending: false });
-  if (error) { console.error("news hydrate", error); return; }
+  if (error) {
+    console.error("news hydrate", error);
+    return;
+  }
   news = (data ?? []).map(fromRow);
   emit();
 }
@@ -46,7 +56,8 @@ function ensureInit() {
   if (initialized || typeof window === "undefined") return;
   initialized = true;
   hydrate();
-  supabase.channel("realtime:news")
+  supabase
+    .channel("realtime:news")
     .on("postgres_changes", { event: "*", schema: "public", table: "news" }, (payload) => {
       const { eventType, new: nr, old: or } = payload;
       if (eventType === "INSERT") {
@@ -58,7 +69,8 @@ function ensureInit() {
         news = news.filter((n) => n.id !== or.id);
       }
       emit();
-    }).subscribe();
+    })
+    .subscribe();
 }
 
 export async function setNews(next) {
@@ -83,7 +95,11 @@ export async function addNews(data) {
     image: typeof data.image === "string" && !data.image.startsWith("blob:") ? data.image : null,
   };
   const { data: inserted, error } = await supabase.from("news").insert(item).select("*").single();
-  if (error) { console.error("addNews", error); toast.error("ບັນທຶກບໍ່ສຳເລັດ"); return null; }
+  if (error) {
+    console.error("addNews", error);
+    toast.error("ບັນທຶກບໍ່ສຳເລັດ");
+    return null;
+  }
   const obj = fromRow(inserted);
   if (!news.some((n) => n.id === obj.id)) news = [obj, ...news];
   emit();
@@ -93,16 +109,23 @@ export async function addNews(data) {
 export async function updateNews(id, patch) {
   news = news.map((n) => (n.id === id ? { ...n, ...patch } : n));
   emit();
-  const row = { ...patch }; delete row.id;
+  const row = { ...patch };
+  delete row.id;
   const { error } = await supabase.from("news").update(row).eq("id", id);
-  if (error) { console.error("updateNews", error); toast.error("ອັບເດດບໍ່ສຳເລັດ"); }
+  if (error) {
+    console.error("updateNews", error);
+    toast.error("ອັບເດດບໍ່ສຳເລັດ");
+  }
 }
 
 export async function deleteNews(id) {
   news = news.filter((n) => n.id !== id);
   emit();
   const { error } = await supabase.from("news").delete().eq("id", id);
-  if (error) { console.error("deleteNews", error); toast.error("ລຶບບໍ່ສຳເລັດ"); }
+  if (error) {
+    console.error("deleteNews", error);
+    toast.error("ລຶບບໍ່ສຳເລັດ");
+  }
 }
 
 export async function incrementNewsViews(id) {
@@ -114,6 +137,8 @@ export async function incrementNewsViews(id) {
 }
 
 export function useNews() {
-  useEffect(() => { ensureInit(); }, []);
+  useEffect(() => {
+    ensureInit();
+  }, []);
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }

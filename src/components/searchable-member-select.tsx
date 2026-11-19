@@ -1,11 +1,7 @@
 // @ts-nocheck
 import { useState } from "react";
 import { Check, ChevronsUpDown, User } from "lucide-react";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Command,
   CommandEmpty,
@@ -45,33 +41,35 @@ export function SearchableMemberSelect({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button type="button" disabled={disabled} className={triggerCls}>
-          <span className={cn("flex items-center gap-2 min-w-0", !selected && "text-muted-foreground")}>
+          <span
+            className={cn("flex items-center gap-2 min-w-0", !selected && "text-muted-foreground")}
+          >
             <User className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <span className="truncate">
-              {selected ? selected.name : placeholder}
-            </span>
+            <span className="truncate">{selected ? selected.name : placeholder}</span>
           </span>
           <ChevronsUpDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
         </button>
       </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0 pointer-events-auto" align="start">
+      <PopoverContent
+        className="w-[--radix-popover-trigger-width] p-0 pointer-events-auto"
+        align="start"
+      >
         <Command
-          filter={(val, search) =>
-            val.toLowerCase().includes(search.toLowerCase()) ? 1 : 0
-          }
+          filter={(val, search) => (val.toLowerCase().includes(search.toLowerCase()) ? 1 : 0)}
         >
           <CommandInput placeholder="ຄົ້ນຫາຊື່..." className="text-sm" />
           <CommandList>
             <CommandEmpty>
-              <div className="px-3 py-6 text-center text-sm text-muted-foreground">
-                ບໍ່ພົບສະມາຊິກ
-              </div>
+              <div className="px-3 py-6 text-center text-sm text-muted-foreground">ບໍ່ພົບສະມາຊິກ</div>
             </CommandEmpty>
             <CommandGroup>
               {allowNone && (
                 <CommandItem
                   value="__none__"
-                  onSelect={() => { onChange?.(null); setOpen(false); }}
+                  onSelect={() => {
+                    onChange?.(null);
+                    setOpen(false);
+                  }}
                   className="text-sm text-muted-foreground"
                 >
                   — ບໍ່ມີ —
@@ -81,7 +79,10 @@ export function SearchableMemberSelect({
                 <CommandItem
                   key={m.id}
                   value={`${m.name} ${m.nickname || ""} ${m.branch || ""}`}
-                  onSelect={() => { onChange?.(m.id); setOpen(false); }}
+                  onSelect={() => {
+                    onChange?.(m.id);
+                    setOpen(false);
+                  }}
                   className="flex items-center gap-2 py-2"
                 >
                   <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10">
@@ -105,18 +106,6 @@ export function SearchableMemberSelect({
 }
 
 // Position tables
-export const LEADER_POSITIONS = [
-  "ປະທານ",
-  "ຮອງປະທານ",
-  "ເລຂາ",
-  "ຮອງເລຂາ",
-  "ກຳມະການ",
-];
+export const LEADER_POSITIONS = ["ປະທານ", "ຮອງປະທານ", "ເລຂາ", "ຮອງເລຂາ", "ກຳມະການ"];
 
-export const ELDER_POSITIONS = [
-  "ປະທານຜູ້ອາວຸໂສ",
-  "ຮອງປະທານ",
-  "ທີ່ປຶກສາ",
-  "ຜູ້ໃຫ້ພອນ",
-  "ຜູ້ໄກ່ເກ່ຍ",
-];
+export const ELDER_POSITIONS = ["ປະທານຜູ້ອາວຸໂສ", "ຮອງປະທານ", "ທີ່ປຶກສາ", "ຜູ້ໃຫ້ພອນ", "ຜູ້ໄກ່ເກ່ຍ"];

@@ -84,9 +84,7 @@ export function AppSidebar() {
               <div className="truncate text-[13px] font-semibold tracking-tight">
                 Kwv Tij Hmoob Xyooj
               </div>
-              <div className="truncate text-[11px] text-muted-foreground">
-                ລະບົບຄຸ້ມຄອງຕະກູນ
-              </div>
+              <div className="truncate text-[11px] text-muted-foreground">ລະບົບຄຸ້ມຄອງຕະກູນ</div>
             </div>
           )}
         </div>
@@ -101,8 +99,7 @@ export function AppSidebar() {
               <SidebarMenu className="gap-0.5">
                 {g.items.map((item) => {
                   const active =
-                    currentPath === item.url ||
-                    (item.url === "/dashboard" && currentPath === "/");
+                    currentPath === item.url || (item.url === "/dashboard" && currentPath === "/");
                   return (
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton

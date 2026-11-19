@@ -13,7 +13,13 @@ interface CreatableComboboxProps {
 }
 
 export function CreatableCombobox({
-  value, onChange, options, placeholder, className, id, disabled,
+  value,
+  onChange,
+  options,
+  placeholder,
+  className,
+  id,
+  disabled,
 }: CreatableComboboxProps) {
   const auto = useId();
   const listId = `cc-${(id ?? auto).replace(/[:]/g, "_")}`;

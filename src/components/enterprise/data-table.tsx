@@ -86,7 +86,14 @@ export function DataTable<T>({
 
   if (loading) return <LoadingState variant="table" rows={pageSize} className={className} />;
   if (rows.length === 0) {
-    return <EmptyState title={emptyTitle} description={emptyDescription} icon={emptyIcon} className={className} />;
+    return (
+      <EmptyState
+        title={emptyTitle}
+        description={emptyDescription}
+        icon={emptyIcon}
+        className={className}
+      />
+    );
   }
 
   return (
@@ -112,7 +119,12 @@ export function DataTable<T>({
                       aria-label={`ຈັດຮຽງຕາມ ${typeof col.header === "string" ? col.header : col.key}`}
                     >
                       {col.header}
-                      <ArrowUpDown className={cn("h-3.5 w-3.5", sortKey === col.key ? "text-foreground" : "opacity-50")} />
+                      <ArrowUpDown
+                        className={cn(
+                          "h-3.5 w-3.5",
+                          sortKey === col.key ? "text-foreground" : "opacity-50",
+                        )}
+                      />
                     </button>
                   ) : (
                     col.header
@@ -149,7 +161,8 @@ export function DataTable<T>({
       {pageCount > 1 && (
         <div className="mt-3 flex items-center justify-between text-sm text-muted-foreground">
           <span>
-            {current * pageSize + 1}–{Math.min((current + 1) * pageSize, sorted.length)} / {sorted.length}
+            {current * pageSize + 1}–{Math.min((current + 1) * pageSize, sorted.length)} /{" "}
+            {sorted.length}
           </span>
           <div className="flex items-center gap-1">
             <Button

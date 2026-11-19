@@ -20,10 +20,22 @@ function fromRow(r) {
 }
 function toRow(o) {
   const row = { ...o };
-  if ("memberId" in row) { row.member_id = row.memberId; delete row.memberId; }
-  if ("joinedAt" in row) { row.joined_at = row.joinedAt; delete row.joinedAt; }
-  if ("createdAt" in row) { row.created_at = row.createdAt; delete row.createdAt; }
-  if ("updatedAt" in row) { row.updated_at = row.updatedAt; delete row.updatedAt; }
+  if ("memberId" in row) {
+    row.member_id = row.memberId;
+    delete row.memberId;
+  }
+  if ("joinedAt" in row) {
+    row.joined_at = row.joinedAt;
+    delete row.joinedAt;
+  }
+  if ("createdAt" in row) {
+    row.created_at = row.createdAt;
+    delete row.createdAt;
+  }
+  if ("updatedAt" in row) {
+    row.updated_at = row.updatedAt;
+    delete row.updatedAt;
+  }
   return row;
 }
 
@@ -31,13 +43,28 @@ let items = [];
 let snapshot = [];
 const listeners = new Set();
 let initialized = false;
-function emit() { snapshot = items.slice(); for (const l of listeners) l(); }
-function subscribe(cb) { ensureInit(); listeners.add(cb); return () => listeners.delete(cb); }
-function getSnapshot() { return snapshot; }
+function emit() {
+  snapshot = items.slice();
+  for (const l of listeners) l();
+}
+function subscribe(cb) {
+  ensureInit();
+  listeners.add(cb);
+  return () => listeners.delete(cb);
+}
+function getSnapshot() {
+  return snapshot;
+}
 
 async function hydrate() {
-  const { data, error } = await supabase.from("fund_members").select("*").order("created_at", { ascending: false });
-  if (error) { console.error("fund_members hydrate", error); return; }
+  const { data, error } = await supabase
+    .from("fund_members")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) {
+    console.error("fund_members hydrate", error);
+    return;
+  }
   items = (data ?? []).map(fromRow);
   emit();
 }
@@ -46,7 +73,8 @@ function ensureInit() {
   if (initialized || typeof window === "undefined") return;
   initialized = true;
   hydrate();
-  supabase.channel("realtime:fund_members")
+  supabase
+    .channel("realtime:fund_members")
     .on("postgres_changes", { event: "*", schema: "public", table: "fund_members" }, (payload) => {
       const { eventType, new: nr, old: or } = payload;
       if (eventType === "INSERT") {
@@ -58,7 +86,8 @@ function ensureInit() {
         items = items.filter((x) => x.id !== or.id);
       }
       emit();
-    }).subscribe();
+    })
+    .subscribe();
 }
 
 export async function addFundMember({ memberId, joinedAt, status = "active", note = "" }) {
@@ -71,7 +100,10 @@ export async function addFundMember({ memberId, joinedAt, status = "active", not
     emit();
     const row = toRow(patch);
     const { error } = await supabase.from("fund_members").update(row).eq("id", existing.id);
-    if (error) { console.error("addFundMember update", error); toast.error("ອັບເດດບໍ່ສຳເລັດ"); }
+    if (error) {
+      console.error("addFundMember update", error);
+      toast.error("ອັບເດດບໍ່ສຳເລັດ");
+    }
     return items.find((x) => x.memberId === memberId) || null;
   }
   const now = Date.now();
@@ -79,7 +111,10 @@ export async function addFundMember({ memberId, joinedAt, status = "active", not
     id: "FM-" + now,
     memberId,
     joinedAt: joinedAt || new Date().toISOString().slice(0, 10),
-    status, note, createdAt: now, updatedAt: now,
+    status,
+    note,
+    createdAt: now,
+    updatedAt: now,
   };
   items = [item, ...items];
   emit();
@@ -104,7 +139,11 @@ export async function updateFundMember(memberId, patch) {
   if (!target) return false;
   const row = toRow(merged);
   const { error } = await supabase.from("fund_members").update(row).eq("id", target.id);
-  if (error) { console.error("updateFundMember", error); toast.error("ອັບເດດບໍ່ສຳເລັດ"); return false; }
+  if (error) {
+    console.error("updateFundMember", error);
+    toast.error("ອັບເດດບໍ່ສຳເລັດ");
+    return false;
+  }
   return true;
 }
 
@@ -119,12 +158,17 @@ export async function removeFundMember(memberId, opts = {}) {
     if (error) {
       console.error("removeFundMember", error);
       toast.error("ລຶບບໍ່ສຳເລັດ: " + error.message);
-      items = snap; emit();
+      items = snap;
+      emit();
       return { ok: false, snapshot: null };
     }
   }
   if (opts.cascade) {
-    try { await cascadeDeleteMemberDonations(memberId); } catch { /* noop */ }
+    try {
+      await cascadeDeleteMemberDonations(memberId);
+    } catch {
+      /* noop */
+    }
   }
   return { ok: true, snapshot: snap };
 }
@@ -144,12 +188,16 @@ export async function restoreFundMembers(snapshotArr) {
 }
 
 export function useFundMembers() {
-  useEffect(() => { ensureInit(); }, []);
+  useEffect(() => {
+    ensureInit();
+  }, []);
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
 export function useActiveFundMemberIds() {
-  useEffect(() => { ensureInit(); }, []);
+  useEffect(() => {
+    ensureInit();
+  }, []);
   const all = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
   return all.filter((x) => x.status === "active").map((x) => x.memberId);
 }
@@ -166,6 +214,13 @@ export function pruneOrphanFundMembers(memberExists) {
   if (toDelete.length > 0) {
     // Fire-and-forget clean-up in DB
     const ids = toDelete.map((x) => x.id);
-    supabase.from("fund_members").delete().in("id", ids).then(() => {}, () => {});
+    supabase
+      .from("fund_members")
+      .delete()
+      .in("id", ids)
+      .then(
+        () => {},
+        () => {},
+      );
   }
 }

@@ -17,7 +17,10 @@ const LEADER_POSITIONS = [
 const deriveInitials = (name = "") => {
   const parts = String(name).trim().split(/\s+/).filter(Boolean);
   const pick = parts.length >= 3 ? parts.slice(1) : parts;
-  return pick.slice(0, 2).map((w) => w[0] || "").join("");
+  return pick
+    .slice(0, 2)
+    .map((w) => w[0] || "")
+    .join("");
 };
 
 export function getLeadersCountFromMembers(members: any[]): number {
@@ -46,9 +49,7 @@ export function getLeadersPreviewFromMembers(members: any[]): any[] {
     memberId: m.id,
     name: m.name,
     position:
-      m.gen === 4
-        ? LEADER_POSITIONS[Math.min(idx, LEADER_POSITIONS.length - 1)]
-        : "ທີ່ປຶກສາອາວຸໂສ",
+      m.gen === 4 ? LEADER_POSITIONS[Math.min(idx, LEADER_POSITIONS.length - 1)] : "ທີ່ປຶກສາອາວຸໂສ",
     generation: `ລຸ້ນທີ ${m.gen} (Phaj ${m.gen})`,
     lineage: m.branch || "",
     initials: deriveInitials(m.name),

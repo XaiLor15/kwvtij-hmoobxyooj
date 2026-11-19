@@ -90,10 +90,8 @@ export function createRealtimeStore({
     try {
       channel = supabase
         .channel(`realtime:${table}`)
-        .on(
-          "postgres_changes",
-          { event: "*", schema: "public", table },
-          (payload) => applyChange(payload),
+        .on("postgres_changes", { event: "*", schema: "public", table }, (payload) =>
+          applyChange(payload),
         )
         .subscribe();
     } catch (err) {
@@ -106,7 +104,9 @@ export function createRealtimeStore({
     listeners.add(cb);
     return () => listeners.delete(cb);
   }
-  function getSnapshot() { return snapshot; }
+  function getSnapshot() {
+    return snapshot;
+  }
 
   async function insertRow(data, { optimistic = true } = {}) {
     const row = toRow(data);
@@ -118,10 +118,12 @@ export function createRealtimeStore({
       tempIdx = 0;
       emit();
     }
-    const { data: inserted, error } = await supabase
-      .from(table).insert(row).select("*").single();
+    const { data: inserted, error } = await supabase.from(table).insert(row).select("*").single();
     if (error) {
-      if (tempIdx !== -1) { items.splice(tempIdx, 1); emit(); }
+      if (tempIdx !== -1) {
+        items.splice(tempIdx, 1);
+        emit();
+      }
       console.error(`[${table}] insert failed`, error);
       toast.error("ບັນທຶກບໍ່ສຳເລັດ: " + error.message);
       return null;
@@ -138,13 +140,18 @@ export function createRealtimeStore({
   async function updateRow(id, patch) {
     const idx = findIndex(id);
     const prev = idx !== -1 ? { ...items[idx] } : null;
-    if (idx !== -1) { items[idx] = { ...items[idx], ...patch }; emit(); }
+    if (idx !== -1) {
+      items[idx] = { ...items[idx], ...patch };
+      emit();
+    }
     const row = toRow(patch);
     delete row[pk];
-    const { data, error } = await supabase
-      .from(table).update(row).eq(pk, id).select("*").single();
+    const { data, error } = await supabase.from(table).update(row).eq(pk, id).select("*").single();
     if (error) {
-      if (prev && idx !== -1) { items[idx] = prev; emit(); }
+      if (prev && idx !== -1) {
+        items[idx] = prev;
+        emit();
+      }
       console.error(`[${table}] update failed`, error);
       toast.error("ອັບເດດບໍ່ສຳເລັດ: " + error.message);
       return null;
@@ -159,10 +166,16 @@ export function createRealtimeStore({
   async function deleteRow(id) {
     const idx = findIndex(id);
     const prev = idx !== -1 ? items[idx] : null;
-    if (idx !== -1) { items.splice(idx, 1); emit(); }
+    if (idx !== -1) {
+      items.splice(idx, 1);
+      emit();
+    }
     const { error } = await supabase.from(table).delete().eq(pk, id);
     if (error) {
-      if (prev) { items.unshift(prev); emit(); }
+      if (prev) {
+        items.unshift(prev);
+        emit();
+      }
       console.error(`[${table}] delete failed`, error);
       toast.error("ລຶບບໍ່ສຳເລັດ: " + error.message);
       return false;
@@ -171,7 +184,15 @@ export function createRealtimeStore({
   }
 
   return {
-    items, subscribe, getSnapshot, emit, ensureInit, hydrate,
-    insertRow, updateRow, deleteRow, findIndex,
+    items,
+    subscribe,
+    getSnapshot,
+    emit,
+    ensureInit,
+    hydrate,
+    insertRow,
+    updateRow,
+    deleteRow,
+    findIndex,
   };
 }

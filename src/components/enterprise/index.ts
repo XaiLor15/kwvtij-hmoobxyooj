@@ -14,4 +14,3 @@ export { StatusBadge } from "./status-badge";
 export { DataTable, type Column } from "./data-table";
 export { ViewAllButton } from "./view-all-button";
 export { BackToHomeButton } from "./back-to-home-button";
-

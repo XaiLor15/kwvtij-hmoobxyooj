@@ -29,8 +29,9 @@ export function SectionCard({
             {title && <h2 className="truncate text-sm font-semibold text-foreground">{title}</h2>}
             {description && <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>}
           </div>
-          {actions && <div className="flex flex-wrap items-center gap-2 sm:shrink-0">{actions}</div>}
-
+          {actions && (
+            <div className="flex flex-wrap items-center gap-2 sm:shrink-0">{actions}</div>
+          )}
         </div>
       )}
       <div className={cn("p-4", bodyClassName)}>{children}</div>

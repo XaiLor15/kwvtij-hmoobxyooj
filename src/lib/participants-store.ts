@@ -10,13 +10,25 @@ let byEvent = {};
 let snapshot = {};
 const listeners = new Set();
 let initialized = false;
-function emit() { snapshot = { ...byEvent }; for (const l of listeners) l(); }
-function subscribe(cb) { ensureInit(); listeners.add(cb); return () => listeners.delete(cb); }
-function getSnapshot() { return snapshot; }
+function emit() {
+  snapshot = { ...byEvent };
+  for (const l of listeners) l();
+}
+function subscribe(cb) {
+  ensureInit();
+  listeners.add(cb);
+  return () => listeners.delete(cb);
+}
+function getSnapshot() {
+  return snapshot;
+}
 
 async function hydrate() {
   const { data, error } = await supabase.from("participants").select("event_id, member_id");
-  if (error) { console.error("participants hydrate", error); return; }
+  if (error) {
+    console.error("participants hydrate", error);
+    return;
+  }
   const map = {};
   for (const r of data ?? []) {
     (map[r.event_id] ??= []).push(r.member_id);
@@ -28,7 +40,8 @@ function ensureInit() {
   if (initialized || typeof window === "undefined") return;
   initialized = true;
   hydrate();
-  supabase.channel("realtime:participants")
+  supabase
+    .channel("realtime:participants")
     .on("postgres_changes", { event: "*", schema: "public", table: "participants" }, (payload) => {
       const { eventType, new: nr, old: or } = payload;
       if (eventType === "INSERT") {
@@ -39,7 +52,8 @@ function ensureInit() {
         byEvent[or.event_id] = list.filter((id) => id !== or.member_id);
       }
       emit();
-    }).subscribe();
+    })
+    .subscribe();
 }
 
 export async function addParticipant(eventId, memberId) {
@@ -47,7 +61,9 @@ export async function addParticipant(eventId, memberId) {
   if (list.includes(memberId)) return;
   byEvent[eventId] = [...list, memberId];
   emit();
-  const { error } = await supabase.from("participants").insert({ event_id: eventId, member_id: memberId });
+  const { error } = await supabase
+    .from("participants")
+    .insert({ event_id: eventId, member_id: memberId });
   if (error && !String(error.message).includes("duplicate")) {
     console.error("addParticipant", error);
     toast.error("ບັນທຶກບໍ່ສຳເລັດ");
@@ -58,17 +74,27 @@ export async function removeParticipant(eventId, memberId) {
   const list = byEvent[eventId] ?? [];
   byEvent[eventId] = list.filter((id) => id !== memberId);
   emit();
-  const { error } = await supabase.from("participants").delete()
-    .eq("event_id", eventId).eq("member_id", memberId);
-  if (error) { console.error("removeParticipant", error); toast.error("ລຶບບໍ່ສຳເລັດ"); }
+  const { error } = await supabase
+    .from("participants")
+    .delete()
+    .eq("event_id", eventId)
+    .eq("member_id", memberId);
+  if (error) {
+    console.error("removeParticipant", error);
+    toast.error("ລຶບບໍ່ສຳເລັດ");
+  }
 }
 
 export function useParticipants(eventId) {
-  useEffect(() => { ensureInit(); }, []);
+  useEffect(() => {
+    ensureInit();
+  }, []);
   const all = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
   return all[eventId] ?? [];
 }
 export function useAllParticipants() {
-  useEffect(() => { ensureInit(); }, []);
+  useEffect(() => {
+    ensureInit();
+  }, []);
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }

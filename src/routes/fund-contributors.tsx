@@ -114,10 +114,7 @@ function FundContributorsPage() {
     [transactions],
   );
 
-  const membersById = useMemo(
-    () => new Map(members.map((m: any) => [m.id, m])),
-    [members],
-  );
+  const membersById = useMemo(() => new Map(members.map((m: any) => [m.id, m])), [members]);
 
   /**
    * Rows: one row per enrolled fund member. Financial figures are DERIVED
@@ -150,10 +147,8 @@ function FundContributorsPage() {
     });
   }, [fundMembers, donations, membersById]);
 
-
   const provinces = useMemo(
-    () =>
-      Array.from(new Set(rows.map((r) => r.member?.province).filter(Boolean))).sort(),
+    () => Array.from(new Set(rows.map((r) => r.member?.province).filter(Boolean))).sort(),
     [rows],
   );
   const districts = useMemo(
@@ -309,9 +304,7 @@ function FundContributorsPage() {
               {r.member?.name || "—"}
             </div>
             {r.member?.nickname && (
-              <div className="truncate text-xs text-muted-foreground">
-                {r.member.nickname}
-              </div>
+              <div className="truncate text-xs text-muted-foreground">{r.member.nickname}</div>
             )}
           </div>
         </div>
@@ -335,9 +328,7 @@ function FundContributorsPage() {
       header: "ວັນເຂົ້າຮ່ວມ",
       sortValue: (r: any) => r.joinedAt || "",
       cell: (r: any) => (
-        <span className="tabular-nums text-xs text-muted-foreground">
-          {r.joinedAt || "—"}
-        </span>
+        <span className="tabular-nums text-xs text-muted-foreground">{r.joinedAt || "—"}</span>
       ),
     },
     {
@@ -346,19 +337,9 @@ function FundContributorsPage() {
       sortValue: (r: any) => r.status,
       cell: (r: any) => (
         <StatusBadge
-          tone={
-            r.status === "active"
-              ? "success"
-              : r.status === "inactive"
-                ? "neutral"
-                : "warning"
-          }
+          tone={r.status === "active" ? "success" : r.status === "inactive" ? "neutral" : "warning"}
         >
-          {r.status === "active"
-            ? "ໃຊ້ງານ"
-            : r.status === "inactive"
-              ? "ຢຸດຊົ່ວຄາວ"
-              : r.status}
+          {r.status === "active" ? "ໃຊ້ງານ" : r.status === "inactive" ? "ຢຸດຊົ່ວຄາວ" : r.status}
         </StatusBadge>
       ),
     },
@@ -367,9 +348,7 @@ function FundContributorsPage() {
       header: "ຄັ້ງ",
       align: "right" as const,
       sortValue: (r: any) => r.count,
-      cell: (r: any) => (
-        <span className="tabular-nums text-sm">{r.count}</span>
-      ),
+      cell: (r: any) => <span className="tabular-nums text-sm">{r.count}</span>,
     },
     {
       key: "total",
@@ -424,17 +403,12 @@ function FundContributorsPage() {
         title="ຜູ້ເຂົ້າຮ່ວມກອງທຶນ"
         description="ລາຍຊື່ຜູ້ເຂົ້າຮ່ວມກອງທຶນຕະກູນ ພ້ອມສະຫຼຸບການບໍລິຈາກ (Real-time)"
 
-
         actions={
           <>
             <Button variant="outline" size="sm" onClick={doExport}>
               <Download className="h-4 w-4 mr-1" /> Export CSV
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.print()}
-            >
+            <Button variant="outline" size="sm" onClick={() => window.print()}>
               <Printer className="h-4 w-4 mr-1" /> Print
             </Button>
             {canCreate && (
@@ -472,11 +446,7 @@ function FundContributorsPage() {
       </div>
 
       <SectionCard bodyClassName="p-3">
-        <Toolbar
-          search={search}
-          onSearchChange={setSearch}
-          searchPlaceholder="ຄົ້ນຫາຊື່, ຊື່ຫຍໍ້..."
-        >
+        <Toolbar search={search} onSearchChange={setSearch} searchPlaceholder="ຄົ້ນຫາຊື່, ຊື່ຫຍໍ້...">
           <Select
             value={province}
             onValueChange={(v) => {
@@ -528,7 +498,6 @@ function FundContributorsPage() {
       <SectionCard bodyClassName="p-3" className={filtered.length === 0 ? "" : "hidden md:block"}>
         {filtered.length === 0 ? (
           <EmptyState
-
             icon={<HandCoins className="h-6 w-6" />}
             title="ບໍ່ພົບຜູ້ເຂົ້າຮ່ວມກອງທຶນ"
             description={
@@ -565,9 +534,7 @@ function FundContributorsPage() {
                   {initials(r.member?.name)}
                 </div>
                 <div className="min-w-0">
-                  <div className="truncate text-sm font-medium">
-                    {r.member?.name || "—"}
-                  </div>
+                  <div className="truncate text-sm font-medium">{r.member?.name || "—"}</div>
                   <div className="truncate text-xs text-muted-foreground">
                     {[r.member?.province, r.member?.district].filter(Boolean).join(" · ")}
                   </div>
@@ -619,11 +586,7 @@ function FundContributorsPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
                 <Label>ວັນເຂົ້າຮ່ວມ</Label>
-                <Input
-                  type="date"
-                  value={addDate}
-                  onChange={(e) => setAddDate(e.target.value)}
-                />
+                <Input type="date" value={addDate} onChange={(e) => setAddDate(e.target.value)} />
               </div>
               <div className="space-y-1.5">
                 <Label>ສະຖານະ</Label>
@@ -682,8 +645,8 @@ function FundContributorsPage() {
                   className="mt-0.5"
                 />
                 <span>
-                  ລຶບແບບ Cascade — ລົບ {deleteTarget.count} ລາຍການບໍລິຈາກອອກນຳ
-                  (ຈະມີຜົນຕໍ່ດັດຊະນີການເງິນ ແລະ Dashboard)
+                  ລຶບແບບ Cascade — ລົບ {deleteTarget.count} ລາຍການບໍລິຈາກອອກນຳ (ຈະມີຜົນຕໍ່ດັດຊະນີການເງິນ ແລະ
+                  Dashboard)
                 </span>
               </label>
             )}

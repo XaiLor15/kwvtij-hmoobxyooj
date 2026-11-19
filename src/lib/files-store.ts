@@ -38,13 +38,28 @@ let files = [];
 let snapshot = [];
 const listeners = new Set();
 let initialized = false;
-function emit() { snapshot = files.slice(); for (const l of listeners) l(); }
-function subscribe(cb) { ensureInit(); listeners.add(cb); return () => listeners.delete(cb); }
-function getSnapshot() { return snapshot; }
+function emit() {
+  snapshot = files.slice();
+  for (const l of listeners) l();
+}
+function subscribe(cb) {
+  ensureInit();
+  listeners.add(cb);
+  return () => listeners.delete(cb);
+}
+function getSnapshot() {
+  return snapshot;
+}
 
 async function hydrate() {
-  const { data, error } = await supabase.from("files").select("*").order("id", { ascending: false });
-  if (error) { console.error("files hydrate", error); return; }
+  const { data, error } = await supabase
+    .from("files")
+    .select("*")
+    .order("id", { ascending: false });
+  if (error) {
+    console.error("files hydrate", error);
+    return;
+  }
   files = (data ?? []).map(fromRow);
   emit();
 }
@@ -52,7 +67,8 @@ function ensureInit() {
   if (initialized || typeof window === "undefined") return;
   initialized = true;
   hydrate();
-  supabase.channel("realtime:files")
+  supabase
+    .channel("realtime:files")
     .on("postgres_changes", { event: "*", schema: "public", table: "files" }, (payload) => {
       const { eventType, new: nr, old: or } = payload;
       if (eventType === "INSERT") {
@@ -64,10 +80,14 @@ function ensureInit() {
         files = files.filter((f) => f.id !== or.id);
       }
       emit();
-    }).subscribe();
+    })
+    .subscribe();
 }
 
-export async function setFiles(next) { files = Array.isArray(next) ? [...next] : []; emit(); }
+export async function setFiles(next) {
+  files = Array.isArray(next) ? [...next] : [];
+  emit();
+}
 
 export async function addFile(data) {
   const item = {
@@ -82,7 +102,11 @@ export async function addFile(data) {
     url: typeof data.url === "string" && data.url.startsWith("blob:") ? null : (data.url ?? null),
   };
   const { data: inserted, error } = await supabase.from("files").insert(item).select("*").single();
-  if (error) { console.error("addFile", error); toast.error("ບັນທຶກບໍ່ສຳເລັດ"); return null; }
+  if (error) {
+    console.error("addFile", error);
+    toast.error("ບັນທຶກບໍ່ສຳເລັດ");
+    return null;
+  }
   const obj = fromRow(inserted);
   // Preserve local blob for immediate download in this session
   if (typeof data.url === "string" && data.url.startsWith("blob:")) obj.url = data.url;
@@ -109,18 +133,29 @@ export async function addFilesFromFileList(fileList, meta = {}) {
 export async function updateFile(id, patch) {
   files = files.map((f) => (f.id === id ? { ...f, ...patch } : f));
   emit();
-  const row = { ...patch }; delete row.id;
+  const row = { ...patch };
+  delete row.id;
   const { error } = await supabase.from("files").update(row).eq("id", id);
-  if (error) { console.error("updateFile", error); toast.error("ອັບເດດບໍ່ສຳເລັດ"); }
+  if (error) {
+    console.error("updateFile", error);
+    toast.error("ອັບເດດບໍ່ສຳເລັດ");
+  }
 }
 
 export async function deleteFile(id) {
   const target = files.find((f) => f.id === id);
-  if (target?.url?.startsWith?.("blob:")) { try { URL.revokeObjectURL(target.url); } catch {} }
+  if (target?.url?.startsWith?.("blob:")) {
+    try {
+      URL.revokeObjectURL(target.url);
+    } catch {}
+  }
   files = files.filter((f) => f.id !== id);
   emit();
   const { error } = await supabase.from("files").delete().eq("id", id);
-  if (error) { console.error("deleteFile", error); toast.error("ລຶບບໍ່ສຳເລັດ"); }
+  if (error) {
+    console.error("deleteFile", error);
+    toast.error("ລຶບບໍ່ສຳເລັດ");
+  }
 }
 
 export async function incrementFileDownloads(id) {
@@ -132,6 +167,8 @@ export async function incrementFileDownloads(id) {
 }
 
 export function useFiles() {
-  useEffect(() => { ensureInit(); }, []);
+  useEffect(() => {
+    ensureInit();
+  }, []);
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }

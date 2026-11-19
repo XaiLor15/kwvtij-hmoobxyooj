@@ -29,9 +29,7 @@ export function getEventStatus(event) {
     const [, h, m] = endMatch;
     endTime = `${h.padStart(2, "0")}:${m}`;
   }
-  const d = endTime
-    ? new Date(`${datePart}T${endTime}:00`)
-    : new Date(`${datePart}T23:59:59`);
+  const d = endTime ? new Date(`${datePart}T${endTime}:00`) : new Date(`${datePart}T23:59:59`);
   if (isNaN(d.getTime())) return "upcoming";
   return now > d ? "past" : "upcoming";
 }

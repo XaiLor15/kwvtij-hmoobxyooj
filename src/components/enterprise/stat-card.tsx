@@ -33,7 +33,12 @@ export function StatCard({
         : "text-muted-foreground";
 
   return (
-    <Card className={cn("flex flex-col gap-3 p-4 shadow-xs transition-shadow hover:shadow-sm", className)}>
+    <Card
+      className={cn(
+        "flex flex-col gap-3 p-4 shadow-xs transition-shadow hover:shadow-sm",
+        className,
+      )}
+    >
       <div className="flex items-center justify-between">
         {icon && (
           <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-subtle text-primary">

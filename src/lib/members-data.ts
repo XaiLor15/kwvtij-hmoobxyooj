@@ -47,7 +47,10 @@ function fromRow(r) {
 
 function toRow(m) {
   const row = { ...m };
-  if ("parent" in row) { row.parent_id = row.parent ?? null; delete row.parent; }
+  if ("parent" in row) {
+    row.parent_id = row.parent ?? null;
+    delete row.parent;
+  }
   delete row.children;
   delete row.spouse;
   return row;
@@ -59,16 +62,31 @@ let snapshot = [];
 const listeners = new Set();
 let initialized = false;
 
-function emit() { snapshot = MEMBERS.slice(); for (const l of listeners) l(); }
-function subscribe(cb) { ensureInit(); listeners.add(cb); return () => listeners.delete(cb); }
-function getSnapshot() { return snapshot; }
+function emit() {
+  snapshot = MEMBERS.slice();
+  for (const l of listeners) l();
+}
+function subscribe(cb) {
+  ensureInit();
+  listeners.add(cb);
+  return () => listeners.delete(cb);
+}
+function getSnapshot() {
+  return snapshot;
+}
 
 async function hydrate() {
   const [membersRes, relationsRes] = await Promise.all([
-    supabase.from("members").select(await readColumns(MEMBERS_PUBLIC_COLUMNS)).order("id", { ascending: true }),
+    supabase
+      .from("members")
+      .select(await readColumns(MEMBERS_PUBLIC_COLUMNS))
+      .order("id", { ascending: true }),
     supabase.from("member_relations").select("*"),
   ]);
-  if (membersRes.error) { console.error("members hydrate", membersRes.error); return; }
+  if (membersRes.error) {
+    console.error("members hydrate", membersRes.error);
+    return;
+  }
   const list = (membersRes.data ?? []).map(fromRow);
   // Attach relations
   const rels = relationsRes.data ?? [];
@@ -88,7 +106,10 @@ async function hydrate() {
 async function reloadRelations() {
   const { data } = await supabase.from("member_relations").select("*");
   if (!data) return;
-  for (const m of MEMBERS) { m.children = []; m.spouse = []; }
+  for (const m of MEMBERS) {
+    m.children = [];
+    m.spouse = [];
+  }
   const byId = new Map(MEMBERS.map((m) => [m.id, m]));
   for (const r of data) {
     const owner = byId.get(r.member_id);
@@ -106,12 +127,16 @@ function ensureInit() {
   initialized = true;
   hydrate();
   try {
-    supabase.channel("realtime:members")
+    supabase
+      .channel("realtime:members")
       .on("postgres_changes", { event: "*", schema: "public", table: "members" }, (payload) => {
         const { eventType, new: nr, old: or } = payload;
         if (eventType === "INSERT") {
           const obj = fromRow(nr);
-          if (!MEMBERS.some((m) => m.id === obj.id)) { MEMBERS.unshift(obj); emit(); }
+          if (!MEMBERS.some((m) => m.id === obj.id)) {
+            MEMBERS.unshift(obj);
+            emit();
+          }
         } else if (eventType === "UPDATE") {
           const obj = fromRow(nr);
           const i = MEMBERS.findIndex((m) => m.id === obj.id);
@@ -119,20 +144,27 @@ function ensureInit() {
             // preserve children/spouse from local cache
             obj.children = MEMBERS[i].children;
             obj.spouse = MEMBERS[i].spouse;
-            MEMBERS[i] = obj; emit();
+            MEMBERS[i] = obj;
+            emit();
           }
         } else if (eventType === "DELETE") {
           const i = MEMBERS.findIndex((m) => m.id === or.id);
-          if (i !== -1) { MEMBERS.splice(i, 1); emit(); }
+          if (i !== -1) {
+            MEMBERS.splice(i, 1);
+            emit();
+          }
         }
       })
       .subscribe();
-    supabase.channel("realtime:member_relations")
+    supabase
+      .channel("realtime:member_relations")
       .on("postgres_changes", { event: "*", schema: "public", table: "member_relations" }, () => {
         reloadRelations();
       })
       .subscribe();
-  } catch (err) { console.error("members realtime", err); }
+  } catch (err) {
+    console.error("members realtime", err);
+  }
 }
 
 export function getMemberById(id) {
@@ -174,8 +206,7 @@ export async function addMember(data) {
     address: address || data.address || "",
   };
   const row = toRow(merged);
-  const { data: inserted, error } = await supabase
-    .from("members").insert(row).select("*").single();
+  const { data: inserted, error } = await supabase.from("members").insert(row).select("*").single();
   if (error) {
     console.error("addMember", error);
     toast.error("ບັນທຶກສະມາຊິກບໍ່ສຳເລັດ: " + error.message);
@@ -185,7 +216,9 @@ export async function addMember(data) {
   // Insert parent-child relation if parent provided
   if (obj.parent) {
     await supabase.from("member_relations").insert({
-      member_id: obj.parent, related_id: obj.id, relation_type: "child",
+      member_id: obj.parent,
+      related_id: obj.id,
+      relation_type: "child",
     });
   }
   if (!MEMBERS.some((m) => m.id === obj.id)) MEMBERS.unshift(obj);
@@ -208,8 +241,10 @@ export async function updateMember(id, patch) {
   const row = toRow(patch);
   delete row.id;
   if ("village" in patch || "district" in patch || "province" in patch) {
-    row.village = next.village; row.district = next.district;
-    row.province = next.province; row.address = next.address;
+    row.village = next.village;
+    row.district = next.district;
+    row.province = next.province;
+    row.address = next.address;
   }
   const { error } = await supabase.from("members").update(row).eq("id", id);
   if (error) {
@@ -244,6 +279,8 @@ export async function deleteMember(id) {
 }
 
 export function useMembers() {
-  useEffect(() => { ensureInit(); }, []);
+  useEffect(() => {
+    ensureInit();
+  }, []);
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }

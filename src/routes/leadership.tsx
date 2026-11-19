@@ -59,7 +59,10 @@ const PALETTE = ["#2d6a4f", "#40916c", "#52b788", "#74c69d", "#95d5b2", "#b7e4c7
 function deriveInitials(name: string): string {
   const cleaned = name.replace(/^(ທ່ານ|ນາງ|ທ້າວ)\s+/g, "").trim();
   const words = cleaned.split(/\s+/).filter(Boolean);
-  const pick = words.slice(0, 2).map((w) => w[0]).join("");
+  const pick = words
+    .slice(0, 2)
+    .map((w) => w[0])
+    .join("");
   return pick || name.slice(0, 2);
 }
 
@@ -199,7 +202,6 @@ function buildLeadersFromMembers(MEMBERS: any[]): Leader[] {
   return leaders;
 }
 
-
 function computeLeadershipStats(leaders: Leader[]) {
   const total = leaders.length;
   const active = leaders.filter((l) => l.status === "active").length;
@@ -220,14 +222,26 @@ function computeLeadershipStats(leaders: Leader[]) {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function statusMeta(status: Leader["status"]) {
-  if (status === "active") return { label: "ກຳລັງດຳລົງຕຳແໜ່ງ", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" };
-  if (status === "advisor") return { label: "ທີ່ປຶກສາ", cls: "bg-amber-50 text-amber-700 border-amber-200" };
+  if (status === "active")
+    return { label: "ກຳລັງດຳລົງຕຳແໜ່ງ", cls: "bg-emerald-50 text-emerald-700 border-emerald-200" };
+  if (status === "advisor")
+    return { label: "ທີ່ປຶກສາ", cls: "bg-amber-50 text-amber-700 border-amber-200" };
   return { label: "ອະດີດ", cls: "bg-slate-100 text-slate-500 border-slate-200" };
 }
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-function StatCard({ label, value, trend, Icon }: { label: string; value: string; trend: string; Icon: any }) {
+function StatCard({
+  label,
+  value,
+  trend,
+  Icon,
+}: {
+  label: string;
+  value: string;
+  trend: string;
+  Icon: any;
+}) {
   const isPositive = trend && trend.startsWith("+");
   return (
     <div className="rounded-xl border bg-card shadow-sm p-4 flex items-center gap-3 min-w-0">
@@ -239,7 +253,9 @@ function StatCard({ label, value, trend, Icon }: { label: string; value: string;
         <div className="text-xs text-muted-foreground mt-1 truncate">{label}</div>
       </div>
       {trend ? (
-        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${isPositive ? "bg-emerald-50 text-emerald-700" : "bg-muted text-muted-foreground"}`}>
+        <span
+          className={`text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${isPositive ? "bg-emerald-50 text-emerald-700" : "bg-muted text-muted-foreground"}`}
+        >
           {trend}
         </span>
       ) : null}
@@ -247,7 +263,19 @@ function StatCard({ label, value, trend, Icon }: { label: string; value: string;
   );
 }
 
-function LeaderCard({ leader, onClick, onViewMember, onEdit, onDelete }: { leader: Leader; onClick: () => void; onViewMember: (id: number) => void; onEdit?: (l: Leader) => void; onDelete?: (l: Leader) => void }) {
+function LeaderCard({
+  leader,
+  onClick,
+  onViewMember,
+  onEdit,
+  onDelete,
+}: {
+  leader: Leader;
+  onClick: () => void;
+  onViewMember: (id: number) => void;
+  onEdit?: (l: Leader) => void;
+  onDelete?: (l: Leader) => void;
+}) {
   const sm = statusMeta(leader.status);
   return (
     <div
@@ -257,7 +285,10 @@ function LeaderCard({ leader, onClick, onViewMember, onEdit, onDelete }: { leade
       <div className="absolute top-3 right-3 z-10 flex gap-1">
         {onEdit && (
           <button
-            onClick={(e) => { e.stopPropagation(); onEdit(leader); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onEdit(leader);
+            }}
             className="h-7 w-7 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors bg-card/60 backdrop-blur"
             aria-label="ແກ້ໄຂ"
             title="ແກ້ໄຂ"
@@ -267,7 +298,10 @@ function LeaderCard({ leader, onClick, onViewMember, onEdit, onDelete }: { leade
         )}
         {onDelete && (
           <button
-            onClick={(e) => { e.stopPropagation(); onDelete(leader); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(leader);
+            }}
             className="h-7 w-7 inline-flex items-center justify-center rounded-md text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors bg-card/60 backdrop-blur"
             aria-label="ລຶບ"
             title="ລຶບຄະນະນຳ"
@@ -298,8 +332,12 @@ function LeaderCard({ leader, onClick, onViewMember, onEdit, onDelete }: { leade
 
         {/* Badges */}
         <div className="flex gap-1.5 flex-wrap">
-          <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{leader.generation}</span>
-          <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{leader.lineage}</span>
+          <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+            {leader.generation}
+          </span>
+          <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+            {leader.lineage}
+          </span>
         </div>
 
         {/* Bio */}
@@ -308,16 +346,23 @@ function LeaderCard({ leader, onClick, onViewMember, onEdit, onDelete }: { leade
         {/* Service */}
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
-          {leader.startYear}{leader.endYear ? `–${leader.endYear}` : "–ປັດຈຸບັນ"}
+          {leader.startYear}
+          {leader.endYear ? `–${leader.endYear}` : "–ປັດຈຸບັນ"}
         </div>
 
         {/* Actions */}
         <div className="flex gap-2 mt-auto pt-1">
-          <button onClick={onClick} className="flex-1 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors">
+          <button
+            onClick={onClick}
+            className="flex-1 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-semibold hover:bg-primary/90 transition-colors"
+          >
             ເບິ່ງຂໍ້ມູນ
           </button>
           <button
-            onClick={(e) => { e.stopPropagation(); onViewMember(leader.memberId); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewMember(leader.memberId);
+            }}
             disabled={!leader.memberId}
             className="flex-1 py-2 rounded-lg border border-border bg-background text-foreground text-xs font-semibold hover:bg-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
@@ -330,13 +375,24 @@ function LeaderCard({ leader, onClick, onViewMember, onEdit, onDelete }: { leade
 }
 
 // Featured hero card for the #1-ranked leader (ປະທານຕະກູນ / top active leader).
-function LeaderHeroCard({ leader, onClick, onViewMember }: { leader: Leader; onClick: () => void; onViewMember: (id?: number) => void }) {
+function LeaderHeroCard({
+  leader,
+  onClick,
+  onViewMember,
+}: {
+  leader: Leader;
+  onClick: () => void;
+  onViewMember: (id?: number) => void;
+}) {
   return (
     <div
       onClick={onClick}
       className="relative overflow-hidden rounded-2xl bg-primary p-6 sm:p-8 text-primary-foreground shadow-md cursor-pointer"
     >
-      <Crown className="pointer-events-none absolute -right-6 -top-6 w-40 h-40 text-primary-foreground/10 rotate-12" strokeWidth={1.25} />
+      <Crown
+        className="pointer-events-none absolute -right-6 -top-6 w-40 h-40 text-primary-foreground/10 rotate-12"
+        strokeWidth={1.25}
+      />
       <div className="relative flex flex-col gap-4 max-w-lg">
         <span className="inline-flex w-fit items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-300">
           <Crown className="w-3.5 h-3.5" /> ຫົວໜ້າຕະກູນປັດຈຸບັນ
@@ -353,7 +409,10 @@ function LeaderHeroCard({ leader, onClick, onViewMember }: { leader: Leader; onC
           </div>
         )}
         <button
-          onClick={(e) => { e.stopPropagation(); onViewMember(leader.memberId); }}
+          onClick={(e) => {
+            e.stopPropagation();
+            onViewMember(leader.memberId);
+          }}
           disabled={!leader.memberId}
           className="mt-1 w-fit px-5 py-2.5 rounded-xl bg-primary-foreground/15 hover:bg-primary-foreground/25 text-primary-foreground text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed backdrop-blur"
         >
@@ -366,7 +425,21 @@ function LeaderHeroCard({ leader, onClick, onViewMember }: { leader: Leader; onC
 
 // Compact ranked row used for everyone below the hero — carries the rank
 // number so the ordering (priority within the leadership) is explicit.
-function LeaderRankRow({ leader, rank, onClick, onViewMember, onEdit, onDelete }: { leader: Leader; rank: number; onClick: () => void; onViewMember: (id?: number) => void; onEdit?: (l: Leader) => void; onDelete?: (l: Leader) => void }) {
+function LeaderRankRow({
+  leader,
+  rank,
+  onClick,
+  onViewMember,
+  onEdit,
+  onDelete,
+}: {
+  leader: Leader;
+  rank: number;
+  onClick: () => void;
+  onViewMember: (id?: number) => void;
+  onEdit?: (l: Leader) => void;
+  onDelete?: (l: Leader) => void;
+}) {
   const sm = statusMeta(leader.status);
   return (
     <div
@@ -383,23 +456,51 @@ function LeaderRankRow({ leader, rank, onClick, onViewMember, onEdit, onDelete }
         <div className="font-bold text-sm text-foreground truncate">{leader.name}</div>
         <div className="text-xs text-primary font-semibold mt-0.5 truncate">{leader.position}</div>
         <div className="flex gap-1.5 flex-wrap mt-1.5">
-          <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{leader.generation}</span>
-          <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">{leader.lineage}</span>
+          <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+            {leader.generation}
+          </span>
+          <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+            {leader.lineage}
+          </span>
         </div>
       </div>
       <div className="hidden sm:flex flex-col items-end gap-2 shrink-0">
-        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${sm.cls}`}>{sm.label}</span>
+        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${sm.cls}`}>
+          {sm.label}
+        </span>
         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           {onEdit && (
-            <button onClick={(e) => { e.stopPropagation(); onEdit(leader); }} className="h-7 w-7 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors" title="ແກ້ໄຂ">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(leader);
+              }}
+              className="h-7 w-7 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              title="ແກ້ໄຂ"
+            >
               <Pencil className="h-3.5 w-3.5" />
             </button>
           )}
-          <button onClick={(e) => { e.stopPropagation(); onViewMember(leader.memberId); }} disabled={!leader.memberId} className="h-7 w-7 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed" title="ເບິ່ງສາຍຕະກູນ">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewMember(leader.memberId);
+            }}
+            disabled={!leader.memberId}
+            className="h-7 w-7 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            title="ເບິ່ງສາຍຕະກູນ"
+          >
             <ChevronRight className="h-3.5 w-3.5" />
           </button>
           {onDelete && (
-            <button onClick={(e) => { e.stopPropagation(); onDelete(leader); }} className="h-7 w-7 inline-flex items-center justify-center rounded-md text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors" title="ລຶບ">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(leader);
+              }}
+              className="h-7 w-7 inline-flex items-center justify-center rounded-md text-rose-600 hover:bg-rose-50 hover:text-rose-700 transition-colors"
+              title="ລຶບ"
+            >
               <X className="h-3.5 w-3.5" />
             </button>
           )}
@@ -409,7 +510,17 @@ function LeaderRankRow({ leader, rank, onClick, onViewMember, onEdit, onDelete }
   );
 }
 
-function DetailPanel({ leader, onClose, onViewMember, onEdit }: { leader: Leader; onClose: () => void; onViewMember: (id: number) => void; onEdit?: () => void }) {
+function DetailPanel({
+  leader,
+  onClose,
+  onViewMember,
+  onEdit,
+}: {
+  leader: Leader;
+  onClose: () => void;
+  onViewMember: (id: number) => void;
+  onEdit?: () => void;
+}) {
   const sm = statusMeta(leader.status);
   return (
     <div
@@ -435,8 +546,12 @@ function DetailPanel({ leader, onClose, onViewMember, onEdit }: { leader: Leader
           <div className="text-xl font-bold text-white mb-1">{leader.name}</div>
           <div className="text-sm text-white/80 mb-3">{leader.position}</div>
           <div className="flex gap-2 flex-wrap">
-            <span className="text-xs bg-white/20 text-white px-2.5 py-1 rounded-full">{leader.generation}</span>
-            <span className="text-xs bg-white/20 text-white px-2.5 py-1 rounded-full">{leader.department}</span>
+            <span className="text-xs bg-white/20 text-white px-2.5 py-1 rounded-full">
+              {leader.generation}
+            </span>
+            <span className="text-xs bg-white/20 text-white px-2.5 py-1 rounded-full">
+              {leader.department}
+            </span>
             <span className={`text-xs px-2.5 py-1 rounded-full border ${sm.cls}`}>{sm.label}</span>
           </div>
         </div>
@@ -444,7 +559,9 @@ function DetailPanel({ leader, onClose, onViewMember, onEdit }: { leader: Leader
         <div className="p-6 space-y-6 flex-1">
           {/* Achievements */}
           <section>
-            <div className="text-xs font-bold text-primary uppercase tracking-wider mb-2">ຜົນສຳເລັດ</div>
+            <div className="text-xs font-bold text-primary uppercase tracking-wider mb-2">
+              ຜົນສຳເລັດ
+            </div>
             <ul className="space-y-2">
               {leader.achievements.map((a, i) => (
                 <li key={i} className="flex items-start gap-2">
@@ -457,7 +574,9 @@ function DetailPanel({ leader, onClose, onViewMember, onEdit }: { leader: Leader
 
           {/* Contact */}
           <section>
-            <div className="text-xs font-bold text-primary uppercase tracking-wider mb-2">ຂໍ້ມູນຕິດຕໍ່</div>
+            <div className="text-xs font-bold text-primary uppercase tracking-wider mb-2">
+              ຂໍ້ມູນຕິດຕໍ່
+            </div>
             <div className="space-y-2">
               <div className="flex items-center gap-3">
                 <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
@@ -479,7 +598,9 @@ function DetailPanel({ leader, onClose, onViewMember, onEdit }: { leader: Leader
 
           {/* Service */}
           <section>
-            <div className="text-xs font-bold text-primary uppercase tracking-wider mb-2">ການດຳລົງຕຳແໜ່ງ</div>
+            <div className="text-xs font-bold text-primary uppercase tracking-wider mb-2">
+              ການດຳລົງຕຳແໜ່ງ
+            </div>
             <div className="space-y-2">
               <div className="flex items-center gap-3">
                 <Calendar className="w-4 h-4 text-muted-foreground flex-shrink-0" />
@@ -497,7 +618,10 @@ function DetailPanel({ leader, onClose, onViewMember, onEdit }: { leader: Leader
           {/* Actions */}
           <div className="flex gap-3 pt-2">
             {onEdit && (
-              <button onClick={onEdit} className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors">
+              <button
+                onClick={onEdit}
+                className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors"
+              >
                 ແກ້ໄຂຂໍ້ມູນ
               </button>
             )}
@@ -533,7 +657,11 @@ function AddLeaderModal({ onClose, onAdd }: { onClose: () => void; onAdd: (l: Le
   const set = (k: string, v: any) => setForm((f) => ({ ...f, [k]: v }));
   const onPhoto = async (file?: File | null) => {
     if (!file) return;
-    try { set("photo", await fileToDataUrl(file)); } catch { toast.error("ອັບໂຫຼດຮູບບໍ່ສຳເລັດ"); }
+    try {
+      set("photo", await fileToDataUrl(file));
+    } catch {
+      toast.error("ອັບໂຫຼດຮູບບໍ່ສຳເລັດ");
+    }
   };
 
   const submit = (e: React.FormEvent) => {
@@ -559,7 +687,10 @@ function AddLeaderModal({ onClose, onAdd }: { onClose: () => void; onAdd: (l: Le
       startYear: form.startDate ? new Date(form.startDate).getFullYear() : new Date().getFullYear(),
       phone: member.phone && member.phone !== "-" ? member.phone : "-",
       email: form.email.trim() || "-",
-      achievements: form.achievements.split(",").map((a) => a.trim()).filter(Boolean),
+      achievements: form.achievements
+        .split(",")
+        .map((a) => a.trim())
+        .filter(Boolean),
       photo: form.photo || null,
       active: !!form.active,
       ...(form.displayOrder !== "" ? { displayOrder: Number(form.displayOrder) || 0 } : {}),
@@ -575,7 +706,10 @@ function AddLeaderModal({ onClose, onAdd }: { onClose: () => void; onAdd: (l: Le
     "w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 disabled:bg-muted disabled:cursor-not-allowed";
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4"
+      onClick={onClose}
+    >
       <div
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-card border border-border rounded-2xl shadow-2xl"
@@ -585,13 +719,18 @@ function AddLeaderModal({ onClose, onAdd }: { onClose: () => void; onAdd: (l: Le
             <UserPlus className="w-5 h-5 text-primary" />
             <h2 className="font-bold text-foreground">ເພີ່ມຄະນະນຳ</h2>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center">
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center"
+          >
             <X className="w-4 h-4 text-muted-foreground" />
           </button>
         </div>
         <form onSubmit={submit} className="p-5 space-y-4">
           <div className="text-sm space-y-1">
-            <span className="font-medium text-foreground">ຊື່ <span className="text-destructive">*</span></span>
+            <span className="font-medium text-foreground">
+              ຊື່ <span className="text-destructive">*</span>
+            </span>
             <SearchableMemberSelect
               value={memberId}
               onChange={setMemberId}
@@ -601,7 +740,9 @@ function AddLeaderModal({ onClose, onAdd }: { onClose: () => void; onAdd: (l: Le
 
           {member && (
             <div className="rounded-xl border border-border bg-muted/40 p-3 space-y-2">
-              <div className="text-xs font-bold text-primary uppercase tracking-wider mb-1">ຂໍ້ມູນຈາກສະມາຊິກ</div>
+              <div className="text-xs font-bold text-primary uppercase tracking-wider mb-1">
+                ຂໍ້ມູນຈາກສະມາຊິກ
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 <label className="text-sm space-y-1">
                   <span className="text-xs text-muted-foreground">ລຸ້ນ</span>
@@ -617,7 +758,9 @@ function AddLeaderModal({ onClose, onAdd }: { onClose: () => void; onAdd: (l: Le
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="text-sm space-y-1 sm:col-span-2">
-              <span className="font-medium text-foreground">ຕຳແໜ່ງ <span className="text-destructive">*</span></span>
+              <span className="font-medium text-foreground">
+                ຕຳແໜ່ງ <span className="text-destructive">*</span>
+              </span>
               <CreatableCombobox
                 className={inputCls}
                 value={form.position}
@@ -628,11 +771,19 @@ function AddLeaderModal({ onClose, onAdd }: { onClose: () => void; onAdd: (l: Le
             </label>
             <label className="text-sm space-y-1">
               <span className="font-medium text-foreground">ພາກສ່ວນ</span>
-              <input className={inputCls} value={form.department} onChange={(e) => set("department", e.target.value)} />
+              <input
+                className={inputCls}
+                value={form.department}
+                onChange={(e) => set("department", e.target.value)}
+              />
             </label>
             <label className="text-sm space-y-1">
               <span className="font-medium text-foreground">ສະຖານະ</span>
-              <select className={inputCls} value={form.status} onChange={(e) => set("status", e.target.value)}>
+              <select
+                className={inputCls}
+                value={form.status}
+                onChange={(e) => set("status", e.target.value)}
+              >
                 <option value="active">ກຳລັງດຳລົງຕຳແໜ່ງ</option>
                 <option value="advisor">ທີ່ປຶກສາ</option>
                 <option value="former">ອະດີດ</option>
@@ -640,43 +791,98 @@ function AddLeaderModal({ onClose, onAdd }: { onClose: () => void; onAdd: (l: Le
             </label>
             <label className="text-sm space-y-1">
               <span className="font-medium text-foreground">ເລີ່ມວັນທີ</span>
-              <input type="date" className={inputCls} value={form.startDate} onChange={(e) => set("startDate", e.target.value)} />
+              <input
+                type="date"
+                className={inputCls}
+                value={form.startDate}
+                onChange={(e) => set("startDate", e.target.value)}
+              />
             </label>
             <label className="text-sm space-y-1">
               <span className="font-medium text-foreground">ລຳດັບການສະແດງ</span>
-              <input type="number" className={inputCls} value={form.displayOrder} onChange={(e) => set("displayOrder", e.target.value)} placeholder="ອັດຕະໂນມັດ" />
+              <input
+                type="number"
+                className={inputCls}
+                value={form.displayOrder}
+                onChange={(e) => set("displayOrder", e.target.value)}
+                placeholder="ອັດຕະໂນມັດ"
+              />
             </label>
             <label className="flex items-center gap-2 text-sm sm:pt-6">
-              <input type="checkbox" checked={form.active} onChange={(e) => set("active", e.target.checked)} className="h-4 w-4" />
+              <input
+                type="checkbox"
+                checked={form.active}
+                onChange={(e) => set("active", e.target.checked)}
+                className="h-4 w-4"
+              />
               <span className="font-medium text-foreground">ເຜີຍແຜ່ (Active)</span>
             </label>
             <div className="text-sm space-y-1 sm:col-span-2">
               <span className="font-medium text-foreground">ຮູບພາບ</span>
               <div className="flex items-center gap-3">
                 <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-primary/10 flex items-center justify-center text-primary text-sm font-bold">
-                  {form.photo ? <img src={form.photo} alt="preview" className="h-full w-full object-cover" /> : deriveInitials(member?.name || "?")}
+                  {form.photo ? (
+                    <img src={form.photo} alt="preview" className="h-full w-full object-cover" />
+                  ) : (
+                    deriveInitials(member?.name || "?")
+                  )}
                 </div>
                 <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:bg-muted">
                   <Upload className="h-3.5 w-3.5" /> ອັບໂຫຼດຮູບ
-                  <input type="file" accept="image/*" className="hidden" onChange={(e) => { onPhoto(e.target.files?.[0]); e.currentTarget.value = ""; }} />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      onPhoto(e.target.files?.[0]);
+                      e.currentTarget.value = "";
+                    }}
+                  />
                 </label>
-                {form.photo && <button type="button" onClick={() => set("photo", "")} className="text-xs text-rose-600 hover:underline">ລຶບຮູບ</button>}
+                {form.photo && (
+                  <button
+                    type="button"
+                    onClick={() => set("photo", "")}
+                    className="text-xs text-rose-600 hover:underline"
+                  >
+                    ລຶບຮູບ
+                  </button>
+                )}
               </div>
             </div>
             <label className="text-sm space-y-1 sm:col-span-2">
               <span className="font-medium text-foreground">ອີເມລ</span>
-              <input className={inputCls} value={form.email} onChange={(e) => set("email", e.target.value)} placeholder="name@clan.la" />
+              <input
+                className={inputCls}
+                value={form.email}
+                onChange={(e) => set("email", e.target.value)}
+                placeholder="name@clan.la"
+              />
             </label>
           </div>
           <label className="text-sm space-y-1 block">
-            <span className="font-medium text-foreground">ຜົນສຳເລັດ <span className="text-muted-foreground text-xs">(ຄັ່ນດ້ວຍ ,)</span></span>
-            <input className={inputCls} value={form.achievements} onChange={(e) => set("achievements", e.target.value)} placeholder="ສ້າງກອງທຶນ, ຈັດງານ..." />
+            <span className="font-medium text-foreground">
+              ຜົນສຳເລັດ <span className="text-muted-foreground text-xs">(ຄັ່ນດ້ວຍ ,)</span>
+            </span>
+            <input
+              className={inputCls}
+              value={form.achievements}
+              onChange={(e) => set("achievements", e.target.value)}
+              placeholder="ສ້າງກອງທຶນ, ຈັດງານ..."
+            />
           </label>
           <div className="flex gap-3 pt-1">
-            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm hover:bg-muted transition-colors">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2.5 rounded-xl border border-border bg-background text-foreground font-semibold text-sm hover:bg-muted transition-colors"
+            >
               ຍົກເລີກ
             </button>
-            <button type="submit" className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors">
+            <button
+              type="submit"
+              className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors"
+            >
               ບັນທຶກ
             </button>
           </div>
@@ -687,7 +893,6 @@ function AddLeaderModal({ onClose, onAdd }: { onClose: () => void; onAdd: (l: Le
 }
 
 // ─── Main Page ─────────────────────────────────────────────────────────────────
-
 
 function LeadershipPage() {
   const navigate = useNavigate();
@@ -725,7 +930,9 @@ function LeadershipPage() {
   const [editing, setEditing] = useState<Leader | null>(null);
   const [showInactive, setShowInactive] = useState(false);
 
-  const addLeader = (l: any) => { void addLeaderStore(l); };
+  const addLeader = (l: any) => {
+    void addLeaderStore(l);
+  };
   const [deletingLeader, setDeletingLeader] = useState<Leader | null>(null);
   const requestRemoveLeader = (l: Leader) => setDeletingLeader(l);
   const confirmRemoveLeader = async () => {
@@ -749,9 +956,7 @@ function LeadershipPage() {
     return matchSearch && matchStatus && matchActive;
   });
 
-  const tabs = [
-    { key: "grid", label: "ລາຍການ", Icon: Users },
-  ] as const;
+  const tabs = [{ key: "grid", label: "ລາຍການ", Icon: Users }] as const;
 
   const quickActions = [
     { Icon: UserPlus, label: "ເພີ່ມຜູ້ນຳ" },
@@ -772,16 +977,20 @@ function LeadershipPage() {
         {/* Back button */}
         <BackToHomeButton />
 
-
         {/* Page Header */}
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">ຄະນະນຳ</h1>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
+              ຄະນະນຳ
+            </h1>
             <p className="text-sm text-muted-foreground mt-1">ຂໍ້ມູນຄະນະນຳ ແລະ ຜູ້ບໍລິຫານຕະກູນ</p>
           </div>
           <div className="flex gap-2 flex-wrap">
             {canCreateLeader && (
-              <button onClick={() => setShowAdd(true)} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold shadow-sm hover:bg-primary/90 transition-colors">
+              <button
+                onClick={() => setShowAdd(true)}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-semibold shadow-sm hover:bg-primary/90 transition-colors"
+              >
                 <UserPlus className="w-4 h-4" /> ເພີ່ມຄະນະນຳ
               </button>
             )}
@@ -825,7 +1034,13 @@ function LeadershipPage() {
                     : "bg-background text-muted-foreground border-border hover:bg-muted"
                 }`}
               >
-                {s === "all" ? "ທັງໝົດ" : s === "active" ? "ດຳລົງຕຳແໜ່ງ" : s === "advisor" ? "ທີ່ປຶກສາ" : "ອະດີດ"}
+                {s === "all"
+                  ? "ທັງໝົດ"
+                  : s === "active"
+                    ? "ດຳລົງຕຳແໜ່ງ"
+                    : s === "advisor"
+                      ? "ທີ່ປຶກສາ"
+                      : "ອະດີດ"}
               </button>
             ))}
             {canEditLeader && (
@@ -877,7 +1092,11 @@ function LeadershipPage() {
                 const [hero, ...rest] = ranked;
                 return (
                   <div className="space-y-6">
-                    <LeaderHeroCard leader={hero} onClick={() => setSelectedLeader(hero)} onViewMember={viewMember} />
+                    <LeaderHeroCard
+                      leader={hero}
+                      onClick={() => setSelectedLeader(hero)}
+                      onViewMember={viewMember}
+                    />
                     <div className="space-y-3">
                       {rest.map((leader, idx) => {
                         const prevStatus = idx === 0 ? hero.status : rest[idx - 1].status;
@@ -908,7 +1127,6 @@ function LeadershipPage() {
             )}
           </div>
         )}
-
 
         {/* Quick Actions — hidden for visitors (view-only role) */}
         {perms.canShowQuickActions() && (
@@ -945,12 +1163,21 @@ function LeadershipPage() {
           leader={selectedLeader}
           onClose={() => setSelectedLeader(null)}
           onViewMember={viewMember}
-          onEdit={canEditLeader ? () => { setEditing(selectedLeader); setSelectedLeader(null); } : undefined}
+          onEdit={
+            canEditLeader
+              ? () => {
+                  setEditing(selectedLeader);
+                  setSelectedLeader(null);
+                }
+              : undefined
+          }
         />
       )}
 
       {/* Add Modal — guarded */}
-      {showAdd && canCreateLeader && <AddLeaderModal onClose={() => setShowAdd(false)} onAdd={addLeader} />}
+      {showAdd && canCreateLeader && (
+        <AddLeaderModal onClose={() => setShowAdd(false)} onAdd={addLeader} />
+      )}
 
       {/* Edit Modal */}
       {editing && (
@@ -969,7 +1196,9 @@ function LeadershipPage() {
       {/* Delete confirmation */}
       <ConfirmDialog
         open={!!deletingLeader}
-        onOpenChange={(v) => { if (!v) setDeletingLeader(null); }}
+        onOpenChange={(v) => {
+          if (!v) setDeletingLeader(null);
+        }}
         title="ຢືນຢັນລຶບຄະນະນຳ"
         description={deletingLeader ? `ຕ້ອງການລຶບ "${deletingLeader.name}" ອອກຈາກລາຍຊື່ຄະນະນຳແທ້ບໍ?` : ""}
         confirmLabel="ລຶບ"
@@ -981,7 +1210,15 @@ function LeadershipPage() {
 }
 
 // ── Edit Leader Modal ────────────────────────────────────────────────────────
-function EditLeaderModal({ leader, onClose, onSave }: { leader: Leader; onClose: () => void; onSave: (patch: Partial<Leader>) => void }) {
+function EditLeaderModal({
+  leader,
+  onClose,
+  onSave,
+}: {
+  leader: Leader;
+  onClose: () => void;
+  onSave: (patch: Partial<Leader>) => void;
+}) {
   const [form, setForm] = useState<any>({
     name: leader.name ?? "",
     position: leader.position ?? "",
@@ -999,7 +1236,11 @@ function EditLeaderModal({ leader, onClose, onSave }: { leader: Leader; onClose:
   const set = (k: string, v: any) => setForm((f: any) => ({ ...f, [k]: v }));
   const onPhoto = async (file?: File | null) => {
     if (!file) return;
-    try { set("photo", await fileToDataUrl(file)); } catch { toast.error("ອັບໂຫຼດຮູບບໍ່ສຳເລັດ"); }
+    try {
+      set("photo", await fileToDataUrl(file));
+    } catch {
+      toast.error("ອັບໂຫຼດຮູບບໍ່ສຳເລັດ");
+    }
   };
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -1015,58 +1256,182 @@ function EditLeaderModal({ leader, onClose, onSave }: { leader: Leader; onClose:
       active: !!form.active,
       startYear: form.startYear,
       endYear: form.endYear || undefined,
-      achievements: form.achievements.split("\n").map((s: string) => s.trim()).filter(Boolean),
+      achievements: form.achievements
+        .split("\n")
+        .map((s: string) => s.trim())
+        .filter(Boolean),
     } as any);
   };
   return (
-    <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-card border border-border rounded-2xl shadow-2xl">
+    <div
+      className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto bg-card border border-border rounded-2xl shadow-2xl"
+      >
         <div className="flex items-center justify-between p-5 border-b border-border sticky top-0 bg-card z-10">
-          <div className="flex items-center gap-2"><Pencil className="w-5 h-5 text-primary" /><h2 className="font-bold text-foreground">ແກ້ໄຂ: {leader.name}</h2></div>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center"><X className="w-4 h-4 text-muted-foreground" /></button>
+          <div className="flex items-center gap-2">
+            <Pencil className="w-5 h-5 text-primary" />
+            <h2 className="font-bold text-foreground">ແກ້ໄຂ: {leader.name}</h2>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 rounded-lg hover:bg-muted flex items-center justify-center"
+          >
+            <X className="w-4 h-4 text-muted-foreground" />
+          </button>
         </div>
         <form onSubmit={submit} className="p-5 space-y-3">
           <div className="flex items-center gap-3">
             <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-bold">
-              {form.photo ? <img src={form.photo} alt={form.name} className="h-full w-full object-cover" /> : deriveInitials(form.name || leader.name)}
+              {form.photo ? (
+                <img src={form.photo} alt={form.name} className="h-full w-full object-cover" />
+              ) : (
+                deriveInitials(form.name || leader.name)
+              )}
             </div>
             <div className="space-y-1">
               <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-xs font-semibold hover:bg-muted">
                 <Upload className="h-3.5 w-3.5" /> ອັບໂຫຼດຮູບ
-                <input type="file" accept="image/*" className="hidden" onChange={(e) => { onPhoto(e.target.files?.[0]); e.currentTarget.value = ""; }} />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    onPhoto(e.target.files?.[0]);
+                    e.currentTarget.value = "";
+                  }}
+                />
               </label>
               {form.photo && (
-                <button type="button" onClick={() => set("photo", "")} className="ml-2 text-xs text-rose-600 hover:underline">ລຶບຮູບ</button>
+                <button
+                  type="button"
+                  onClick={() => set("photo", "")}
+                  className="ml-2 text-xs text-rose-600 hover:underline"
+                >
+                  ລຶບຮູບ
+                </button>
               )}
             </div>
           </div>
-          <label className="block text-sm space-y-1"><span className="font-medium">ຊື່-ນາມສະກຸນ</span><input value={form.name} onChange={(e) => set("name", e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm" /></label>
-          <label className="block text-sm space-y-1"><span className="font-medium">ຕຳແໜ່ງ</span><CreatableCombobox value={form.position} onChange={(v) => set("position", v)} options={LEADER_POSITIONS} placeholder="ເລືອກ ຫຼື ພິມຕຳແໜ່ງ..." className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm" /></label>
+          <label className="block text-sm space-y-1">
+            <span className="font-medium">ຊື່-ນາມສະກຸນ</span>
+            <input
+              value={form.name}
+              onChange={(e) => set("name", e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
+            />
+          </label>
+          <label className="block text-sm space-y-1">
+            <span className="font-medium">ຕຳແໜ່ງ</span>
+            <CreatableCombobox
+              value={form.position}
+              onChange={(v) => set("position", v)}
+              options={LEADER_POSITIONS}
+              placeholder="ເລືອກ ຫຼື ພິມຕຳແໜ່ງ..."
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
+            />
+          </label>
           <div className="grid grid-cols-2 gap-3">
-            <label className="block text-sm space-y-1"><span className="font-medium">ລຳດັບການສະແດງ</span><input type="number" value={form.displayOrder} onChange={(e) => set("displayOrder", e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm" /></label>
+            <label className="block text-sm space-y-1">
+              <span className="font-medium">ລຳດັບການສະແດງ</span>
+              <input
+                type="number"
+                value={form.displayOrder}
+                onChange={(e) => set("displayOrder", e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
+              />
+            </label>
             <label className="flex items-center gap-2 pt-6 text-sm">
-              <input type="checkbox" checked={!!form.active} onChange={(e) => set("active", e.target.checked)} className="h-4 w-4" />
+              <input
+                type="checkbox"
+                checked={!!form.active}
+                onChange={(e) => set("active", e.target.checked)}
+                className="h-4 w-4"
+              />
               <span className="font-medium">ເຜີຍແຜ່ (Active)</span>
             </label>
           </div>
-          <label className="block text-sm space-y-1"><span className="font-medium">ພາກສ່ວນ</span><input value={form.department} onChange={(e) => set("department", e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm" /></label>
-          <label className="block text-sm space-y-1"><span className="font-medium">ສະຖານະ</span>
-            <select value={form.status} onChange={(e) => set("status", e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm">
+          <label className="block text-sm space-y-1">
+            <span className="font-medium">ພາກສ່ວນ</span>
+            <input
+              value={form.department}
+              onChange={(e) => set("department", e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
+            />
+          </label>
+          <label className="block text-sm space-y-1">
+            <span className="font-medium">ສະຖານະ</span>
+            <select
+              value={form.status}
+              onChange={(e) => set("status", e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
+            >
               <option value="active">ດຳລົງຕຳແໜ່ງ</option>
               <option value="advisor">ທີ່ປຶກສາ</option>
               <option value="former">ອະດີດ</option>
             </select>
           </label>
           <div className="grid grid-cols-2 gap-3">
-            <label className="block text-sm space-y-1"><span className="font-medium">ປີເລີ່ມ</span><input value={form.startYear} onChange={(e) => set("startYear", e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm" /></label>
-            <label className="block text-sm space-y-1"><span className="font-medium">ປີສິ້ນສຸດ</span><input value={form.endYear} onChange={(e) => set("endYear", e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm" placeholder="ປະຈຸບັນ" /></label>
+            <label className="block text-sm space-y-1">
+              <span className="font-medium">ປີເລີ່ມ</span>
+              <input
+                value={form.startYear}
+                onChange={(e) => set("startYear", e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
+              />
+            </label>
+            <label className="block text-sm space-y-1">
+              <span className="font-medium">ປີສິ້ນສຸດ</span>
+              <input
+                value={form.endYear}
+                onChange={(e) => set("endYear", e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
+                placeholder="ປະຈຸບັນ"
+              />
+            </label>
           </div>
-          <label className="block text-sm space-y-1"><span className="font-medium">ໂທລະສັບ</span><input value={form.phone} onChange={(e) => set("phone", e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm" /></label>
-          <label className="block text-sm space-y-1"><span className="font-medium">ອີເມລ</span><input value={form.email} onChange={(e) => set("email", e.target.value)} className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm" /></label>
-          <label className="block text-sm space-y-1"><span className="font-medium">ຜົນສຳເລັດ (ບັນທັດລະຂໍ້)</span><textarea value={form.achievements} onChange={(e) => set("achievements", e.target.value)} rows={3} className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm" /></label>
+          <label className="block text-sm space-y-1">
+            <span className="font-medium">ໂທລະສັບ</span>
+            <input
+              value={form.phone}
+              onChange={(e) => set("phone", e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
+            />
+          </label>
+          <label className="block text-sm space-y-1">
+            <span className="font-medium">ອີເມລ</span>
+            <input
+              value={form.email}
+              onChange={(e) => set("email", e.target.value)}
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
+            />
+          </label>
+          <label className="block text-sm space-y-1">
+            <span className="font-medium">ຜົນສຳເລັດ (ບັນທັດລະຂໍ້)</span>
+            <textarea
+              value={form.achievements}
+              onChange={(e) => set("achievements", e.target.value)}
+              rows={3}
+              className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm"
+            />
+          </label>
           <div className="flex gap-3 pt-1">
-            <button type="button" onClick={onClose} className="flex-1 py-2.5 rounded-xl border border-border bg-background text-sm font-semibold hover:bg-muted">ຍົກເລີກ</button>
-            <button type="submit" className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold">ບັນທຶກ</button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2.5 rounded-xl border border-border bg-background text-sm font-semibold hover:bg-muted"
+            >
+              ຍົກເລີກ
+            </button>
+            <button
+              type="submit"
+              className="flex-1 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold"
+            >
+              ບັນທຶກ
+            </button>
           </div>
         </form>
       </div>

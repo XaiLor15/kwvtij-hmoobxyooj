@@ -43,7 +43,10 @@ export function PageHeader({
                       {c.label}
                     </Link>
                   ) : (
-                    <span className={cn(last && "font-medium text-foreground")} aria-current={last ? "page" : undefined}>
+                    <span
+                      className={cn(last && "font-medium text-foreground")}
+                      aria-current={last ? "page" : undefined}
+                    >
                       {c.label}
                     </span>
                   )}
@@ -67,9 +70,7 @@ export function PageHeader({
             <h1 className="truncate text-xl font-semibold tracking-tight text-foreground md:text-2xl">
               {title}
             </h1>
-            {description && (
-              <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-            )}
+            {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
           </div>
         </div>
         {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
@@ -77,4 +78,3 @@ export function PageHeader({
     </div>
   );
 }
-

@@ -2,11 +2,7 @@
 import { useState } from "react";
 import { Check, ChevronsUpDown, UserPlus, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Command,
   CommandEmpty,
@@ -41,9 +37,7 @@ export function MemberCombobox({ excludeIds = [], onSelect }) {
       </PopoverTrigger>
       <PopoverContent className="w-[280px] p-0" align="end">
         <Command
-          filter={(val, search) =>
-            val.toLowerCase().includes(search.toLowerCase()) ? 1 : 0
-          }
+          filter={(val, search) => (val.toLowerCase().includes(search.toLowerCase()) ? 1 : 0)}
         >
           <CommandInput placeholder="ຄົ້ນຫາສະມາຊິກ..." className="text-sm" />
           <CommandList>
@@ -68,7 +62,9 @@ export function MemberCombobox({ excludeIds = [], onSelect }) {
                   </span>
                   <div className="flex min-w-0 flex-1 flex-col">
                     <span className="truncate text-sm font-medium text-foreground">{m.name}</span>
-                    <span className="truncate text-[11px] text-muted-foreground">{m.branch} · {m.role}</span>
+                    <span className="truncate text-[11px] text-muted-foreground">
+                      {m.branch} · {m.role}
+                    </span>
                   </div>
                 </CommandItem>
               ))}

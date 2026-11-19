@@ -116,10 +116,19 @@ export function ZoomableVideo({
       className={"group relative block w-full overflow-hidden bg-black " + (className ?? "")}
       aria-label="ຫຼິ້ນວິດີໂອ"
     >
-      <video src={src} poster={poster} muted playsInline preload="metadata" className="w-full h-full object-cover pointer-events-none" />
+      <video
+        src={src}
+        poster={poster}
+        muted
+        playsInline
+        preload="metadata"
+        className="w-full h-full object-cover pointer-events-none"
+      />
       <span className="absolute inset-0 flex items-center justify-center bg-black/30 group-hover:bg-black/40 transition-colors">
         <span className="flex h-14 w-14 items-center justify-center rounded-full bg-white/90 text-black shadow-lg group-hover:scale-105 transition-transform">
-          <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6 ml-0.5"><path d="M8 5v14l11-7z"/></svg>
+          <svg viewBox="0 0 24 24" fill="currentColor" className="h-6 w-6 ml-0.5">
+            <path d="M8 5v14l11-7z" />
+          </svg>
         </span>
       </span>
     </button>

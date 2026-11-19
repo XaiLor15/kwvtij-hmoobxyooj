@@ -9,15 +9,14 @@ export function cn(...inputs: ClassValue[]) {
 // Strips Lao tone marks & combining vowels so "ສົມ" matches "ສົ່ມ", lowercase,
 // collapses whitespace. Makes member search forgiving of tone/vowel typing.
 export function normalizeSearchText(v?: string | null): string {
-  return (v ?? "")
-    .toLowerCase()
-    .replace(/[ັິີຶືຸູົຼ່້໊໋໌ໍ຺]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
+  return (v ?? "").toLowerCase().replace(/[ັິີຶືຸູົຼ່້໊໋໌ໍ຺]/g, "").replace(/\s+/g, " ").trim();
 }
 
 // All whitespace-separated tokens must be found somewhere in the haystack.
-export function matchesSearchTokens(query: string, ...fields: Array<string | null | undefined>): boolean {
+export function matchesSearchTokens(
+  query: string,
+  ...fields: Array<string | null | undefined>
+): boolean {
   const tokens = normalizeSearchText(query).split(" ").filter(Boolean);
   if (tokens.length === 0) return true;
   const hay = normalizeSearchText(fields.filter(Boolean).join(" "));
@@ -33,9 +32,15 @@ function stripPrefix(value: string, prefix: string) {
   return v.startsWith(prefix) ? v.slice(prefix.length).trim() : v;
 }
 
-export function normalizeVillage(v: string) { return stripPrefix(v, "ບ້ານ"); }
-export function normalizeDistrict(v: string) { return stripPrefix(v, "ເມືອງ"); }
-export function normalizeProvince(v: string) { return stripPrefix(v, "ແຂວງ"); }
+export function normalizeVillage(v: string) {
+  return stripPrefix(v, "ບ້ານ");
+}
+export function normalizeDistrict(v: string) {
+  return stripPrefix(v, "ເມືອງ");
+}
+export function normalizeProvince(v: string) {
+  return stripPrefix(v, "ແຂວງ");
+}
 
 // ── Group (ກຸ່ມ) helpers ────────────────────────────────────────────────────
 // Canonical group names. Any legacy spelling is folded into these two.
@@ -47,11 +52,12 @@ export function normalizeBranch(v?: string | null): string {
   const s = (v ?? "").trim();
   if (!s) return "";
   const l = s.toLowerCase();
-  if (l.includes("txauj") || l.includes("pog loj") || l.includes("ກຸ່ມທີ 1") || l.includes("ກຸ່ມ 1")) return BRANCH_GROUP_1;
-  if (l.includes("liag") || l.includes("pog yau") || l.includes("ກຸ່ມທີ 2") || l.includes("ກຸ່ມ 2")) return BRANCH_GROUP_2;
+  if (l.includes("txauj") || l.includes("pog loj") || l.includes("ກຸ່ມທີ 1") || l.includes("ກຸ່ມ 1"))
+    return BRANCH_GROUP_1;
+  if (l.includes("liag") || l.includes("pog yau") || l.includes("ກຸ່ມທີ 2") || l.includes("ກຸ່ມ 2"))
+    return BRANCH_GROUP_2;
   return s;
 }
-
 
 export function formatAddress(parts: { village?: string; district?: string; province?: string }) {
   const v = normalizeVillage(parts.village ?? "");
@@ -65,7 +71,11 @@ export function formatAddress(parts: { village?: string; district?: string; prov
 }
 
 // Best-effort parse of an existing combined address back into its parts.
-export function parseAddress(addr?: string): { village: string; district: string; province: string } {
+export function parseAddress(addr?: string): {
+  village: string;
+  district: string;
+  province: string;
+} {
   const out = { village: "", district: "", province: "" };
   if (!addr) return out;
   for (const raw of addr.split(",")) {

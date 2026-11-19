@@ -44,12 +44,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -60,7 +55,13 @@ import {
 } from "@/components/ui/table";
 import { EventCombobox } from "@/components/event-combobox";
 import { EVENT_STATUS } from "@/lib/events-data";
-import { useTransactions, addTransaction, updateTransaction, deleteTransaction, eventTotals } from "@/lib/treasury-store";
+import {
+  useTransactions,
+  addTransaction,
+  updateTransaction,
+  deleteTransaction,
+  eventTotals,
+} from "@/lib/treasury-store";
 import { useEvents } from "@/lib/events-store";
 import { useAllParticipants } from "@/lib/participants-store";
 import { MEMBERS, useMembers, getMemberById } from "@/lib/members-data";
@@ -69,12 +70,31 @@ import { usePermissions } from "@/lib/permissions";
 
 import { toast } from "sonner";
 import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Trash2 } from "lucide-react";
 
-const LAO_MONTH_ABBR = ["ມ.ກ","ກ.ພ","ມ.ນ","ເ.ມ","ພ.ພ","ມິ.ຖ","ກ.ລ","ສ.ຫ","ກ.ຍ","ຕ.ລ","ພ.ຈ","ທ.ວ"];
+const LAO_MONTH_ABBR = [
+  "ມ.ກ",
+  "ກ.ພ",
+  "ມ.ນ",
+  "ເ.ມ",
+  "ພ.ພ",
+  "ມິ.ຖ",
+  "ກ.ລ",
+  "ສ.ຫ",
+  "ກ.ຍ",
+  "ຕ.ລ",
+  "ພ.ຈ",
+  "ທ.ວ",
+];
 
 function formatLAK(amount) {
   const abs = Math.abs(amount);
@@ -99,11 +119,18 @@ function CountUp({ target, duration = 1500 }) {
   return <span>{val.toLocaleString()}</span>;
 }
 
-const typeLabel = { contribution: "ຄ່າທຳນຽມ", donation: "ບໍລິຈາກ", expense: "ລາຍຈ່າຍ", emergency: "ສຸກເສີນ", "treasury withdrawal": "ຖອນ" };
+const typeLabel = {
+  contribution: "ຄ່າທຳນຽມ",
+  donation: "ບໍລິຈາກ",
+  expense: "ລາຍຈ່າຍ",
+  emergency: "ສຸກເສີນ",
+  "treasury withdrawal": "ຖອນ",
+};
 const statusLabel = { completed: "ສຳເລັດ", pending: "ລໍຖ້າ", cancelled: "ຍົກເລີກ", refunded: "ຄືນເງິນ" };
 
 function typeBadgeClass(type) {
-  if (type === "contribution" || type === "donation") return "bg-emerald-600/10 text-emerald-700 border-emerald-600/20";
+  if (type === "contribution" || type === "donation")
+    return "bg-emerald-600/10 text-emerald-700 border-emerald-600/20";
   if (type === "emergency") return "bg-amber-600/10 text-amber-700 border-amber-600/20";
   return "bg-rose-600/10 text-rose-700 border-rose-600/20";
 }
@@ -136,21 +163,31 @@ function FinancePage() {
   const [viewTxn, setViewTxn] = useState<any>(null);
   const [editTxn, setEditTxn] = useState<any>(null);
   const [deleteTxn, setDeleteTxn] = useState<any>(null);
-  const [editForm, setEditForm] = useState<any>({ amount: "", method: "", category: "", note: "", contributor: "" });
+  const [editForm, setEditForm] = useState<any>({
+    amount: "",
+    method: "",
+    category: "",
+    note: "",
+    contributor: "",
+  });
   useEffect(() => {
-    if (editTxn) setEditForm({
-      amount: String(Math.abs(editTxn.amount ?? editTxn.amount_raw ?? 0)),
-      method: editTxn.method ?? "",
-      category: editTxn.category ?? "",
-      note: editTxn.note ?? "",
-      contributor: editTxn.contributor ?? "",
-    });
+    if (editTxn)
+      setEditForm({
+        amount: String(Math.abs(editTxn.amount ?? editTxn.amount_raw ?? 0)),
+        method: editTxn.method ?? "",
+        category: editTxn.category ?? "",
+        note: editTxn.note ?? "",
+        contributor: editTxn.contributor ?? "",
+      });
   }, [editTxn]);
   const setEF = (k, v) => setEditForm((f) => ({ ...f, [k]: v }));
   const handleSaveEdit = () => {
     if (!editTxn) return;
     const amt = Number(editForm.amount);
-    if (!amt || amt <= 0) { toast.error("ກະລຸນາປ້ອນຈຳນວນເງິນທີ່ຖືກຕ້ອງ"); return; }
+    if (!amt || amt <= 0) {
+      toast.error("ກະລຸນາປ້ອນຈຳນວນເງິນທີ່ຖືກຕ້ອງ");
+      return;
+    }
     updateTransaction(editTxn.id, {
       amount: amt,
       method: editForm.method,
@@ -164,14 +201,27 @@ function FinancePage() {
 
   // ── Event-linked transactions (realtime store) ──────────────────────────
   const storeTxns = useTransactions();
-  const emptyForm = { type: "", eventId: null, memberId: null, party: "", amount: "", method: "", category: "", note: "" };
+  const emptyForm = {
+    type: "",
+    eventId: null,
+    memberId: null,
+    party: "",
+    amount: "",
+    method: "",
+    category: "",
+    note: "",
+  };
   const [form, setForm] = useState(emptyForm);
   const [formError, setFormError] = useState("");
-  const setField = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
+  const setField = (k, v) => setForm((prev) => ({ ...prev, [k]: v }));
 
   function openModal(type, presetEventId = null) {
     setModalType(type);
-    setForm({ ...emptyForm, type: type === "expense" ? "ລາຍຈ່າຍ" : "ຄ່າທຳນຽມ", eventId: presetEventId });
+    setForm({
+      ...emptyForm,
+      type: type === "expense" ? "ລາຍຈ່າຍ" : "ຄ່າທຳນຽມ",
+      eventId: presetEventId,
+    });
     setFormError("");
     setShowModal(true);
   }
@@ -187,9 +237,15 @@ function FinancePage() {
 
   function handleSave() {
     setFormError("");
-    if (!form.type) { setFormError("ກະລຸນາເລືອກປະເພດທຸລະກຳ"); return; }
+    if (!form.type) {
+      setFormError("ກະລຸນາເລືອກປະເພດທຸລະກຳ");
+      return;
+    }
     const amt = Number(form.amount);
-    if (!amt || amt <= 0) { setFormError("ກະລຸນາປ້ອນຈຳນວນເງິນທີ່ຖືກຕ້ອງ"); return; }
+    if (!amt || amt <= 0) {
+      setFormError("ກະລຸນາປ້ອນຈຳນວນເງິນທີ່ຖືກຕ້ອງ");
+      return;
+    }
     let contributorName = form.party?.trim() || "";
     if (form.memberId) {
       const m = getMemberById(form.memberId);
@@ -217,12 +273,18 @@ function FinancePage() {
     });
   }
 
-
   // Map store transactions to the table/summary shape, then merge with legacy data.
-  const linkedTxns = storeTxns.map(t => ({
+  const linkedTxns = storeTxns.map((t) => ({
     id: t.id,
     date: t.date,
-    type: t.direction === "expense" ? "expense" : (t.type === "ບໍລິຈາກ" ? "donation" : t.type === "ສຸກເສີນ" ? "emergency" : "contribution"),
+    type:
+      t.direction === "expense"
+        ? "expense"
+        : t.type === "ບໍລິຈາກ"
+          ? "donation"
+          : t.type === "ສຸກເສີນ"
+            ? "emergency"
+            : "contribution",
     event: t.eventTitle,
     eventId: t.eventId,
     memberId: t.memberId ?? null,
@@ -238,8 +300,10 @@ function FinancePage() {
   const filters = ["ທັງໝົດ", "ລາຍຮັບ", "ລາຍຈ່າຍ", "ບໍລິຈາກ", "ກິດຈະກຳ", "ຄ່າໃຊ້ຈ່າຍສຸກເສີນ"];
   const dateFilters = ["ມື້ນີ້", "ເດືອນນີ້", "ປີນີ້", "ທັງໝົດ"];
 
-  const totalIncome = allTransactions.filter(t => t.amount > 0).reduce((a, t) => a + t.amount, 0);
-  const totalExpense = allTransactions.filter(t => t.amount < 0).reduce((a, t) => a + Math.abs(t.amount), 0);
+  const totalIncome = allTransactions.filter((t) => t.amount > 0).reduce((a, t) => a + t.amount, 0);
+  const totalExpense = allTransactions
+    .filter((t) => t.amount < 0)
+    .reduce((a, t) => a + Math.abs(t.amount), 0);
   const balance = totalIncome - totalExpense;
 
   // Derive monthly income/expense from the live transaction store.
@@ -254,7 +318,7 @@ function FinancePage() {
     }
     return buckets;
   })();
-  const maxBar = Math.max(1, ...monthlyData.map(d => Math.max(d.income, d.expense)));
+  const maxBar = Math.max(1, ...monthlyData.map((d) => Math.max(d.income, d.expense)));
 
   // Derive top contributors from the live transaction store.
   const topContributors = (() => {
@@ -276,7 +340,14 @@ function FinancePage() {
 
   // Derive expense categories from the live transaction store.
   const expenseCategories = (() => {
-    const palette = ["bg-emerald-500","bg-sky-500","bg-amber-500","bg-rose-500","bg-violet-500","bg-teal-500"];
+    const palette = [
+      "bg-emerald-500",
+      "bg-sky-500",
+      "bg-amber-500",
+      "bg-rose-500",
+      "bg-violet-500",
+      "bg-teal-500",
+    ];
     const sums = new Map();
     let total = 0;
     for (const t of allTransactions) {
@@ -320,8 +391,9 @@ function FinancePage() {
   const formEvent = form.eventId ? getEventById(form.eventId) : null;
   const formEventTotals = form.eventId ? eventTotals(storeTxns, form.eventId) : null;
 
-  const filteredTxn = allTransactions.filter(t => {
-    const matchSearch = search === "" ||
+  const filteredTxn = allTransactions.filter((t) => {
+    const matchSearch =
+      search === "" ||
       t.contributor.toLowerCase().includes(search.toLowerCase()) ||
       (t.event || "").toLowerCase().includes(search.toLowerCase()) ||
       t.id.toLowerCase().includes(search.toLowerCase());
@@ -342,12 +414,60 @@ function FinancePage() {
   ).size;
   const txnCount = allTransactions.length;
   const summaryCards = [
-    { icon: Wallet, label: "ຍອດຄົງເຫຼືອ", value: balance, trend: "", isCount: false, colorClass: "text-emerald-600", bgClass: "bg-emerald-600/10" },
-    { icon: TrendingUp, label: "ລາຍຮັບລວມ", value: totalIncome, trend: "", isCount: false, colorClass: "text-sky-600", bgClass: "bg-sky-600/10" },
-    { icon: TrendingDown, label: "ລາຍຈ່າຍລວມ", value: totalExpense, trend: "", isCount: false, colorClass: "text-rose-600", bgClass: "bg-rose-600/10" },
-    { icon: CalendarDays, label: "ຈຳນວນກິດຈະກຳ", value: EVENTS.length, trend: "", isCount: true, colorClass: "text-violet-600", bgClass: "bg-violet-600/10" },
-    { icon: Users, label: "ຜູ້ບໍລິຈາກ", value: uniqueDonors, trend: "", isCount: true, colorClass: "text-amber-600", bgClass: "bg-amber-600/10" },
-    { icon: Gem, label: "ຈຳນວນທຸລະກຳ", value: txnCount, trend: "", isCount: true, colorClass: "text-teal-600", bgClass: "bg-teal-600/10" },
+    {
+      icon: Wallet,
+      label: "ຍອດຄົງເຫຼືອ",
+      value: balance,
+      trend: "",
+      isCount: false,
+      colorClass: "text-emerald-600",
+      bgClass: "bg-emerald-600/10",
+    },
+    {
+      icon: TrendingUp,
+      label: "ລາຍຮັບລວມ",
+      value: totalIncome,
+      trend: "",
+      isCount: false,
+      colorClass: "text-sky-600",
+      bgClass: "bg-sky-600/10",
+    },
+    {
+      icon: TrendingDown,
+      label: "ລາຍຈ່າຍລວມ",
+      value: totalExpense,
+      trend: "",
+      isCount: false,
+      colorClass: "text-rose-600",
+      bgClass: "bg-rose-600/10",
+    },
+    {
+      icon: CalendarDays,
+      label: "ຈຳນວນກິດຈະກຳ",
+      value: EVENTS.length,
+      trend: "",
+      isCount: true,
+      colorClass: "text-violet-600",
+      bgClass: "bg-violet-600/10",
+    },
+    {
+      icon: Users,
+      label: "ຜູ້ບໍລິຈາກ",
+      value: uniqueDonors,
+      trend: "",
+      isCount: true,
+      colorClass: "text-amber-600",
+      bgClass: "bg-amber-600/10",
+    },
+    {
+      icon: Gem,
+      label: "ຈຳນວນທຸລະກຳ",
+      value: txnCount,
+      trend: "",
+      isCount: true,
+      colorClass: "text-teal-600",
+      bgClass: "bg-teal-600/10",
+    },
   ];
 
   return (
@@ -367,13 +487,17 @@ function FinancePage() {
             <Button size="sm" onClick={() => openModal("income")} className="gap-1.5">
               <Plus className="h-4 w-4" /> ເພີ່ມລາຍຮັບ
             </Button>
-            <Button size="sm" variant="outline" onClick={() => openModal("expense")} className="gap-1.5 text-rose-600 border-rose-200 hover:bg-rose-50">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => openModal("expense")}
+              className="gap-1.5 text-rose-600 border-rose-200 hover:bg-rose-50"
+            >
               <Plus className="h-4 w-4" /> ເພີ່ມລາຍຈ່າຍ
             </Button>
           </div>
         )}
       </div>
-
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
@@ -382,17 +506,25 @@ function FinancePage() {
           return (
             <Card key={i} className="rounded-xl border bg-card shadow-sm">
               <CardContent className="p-4">
-                <div className={`mb-3 flex h-8 w-8 items-center justify-center rounded-lg ${card.bgClass}`}>
+                <div
+                  className={`mb-3 flex h-8 w-8 items-center justify-center rounded-lg ${card.bgClass}`}
+                >
                   <Icon className={`h-4 w-4 ${card.colorClass}`} />
                 </div>
                 <p className="text-xs text-muted-foreground mb-1">{card.label}</p>
                 <p className={`text-base font-bold ${card.colorClass}`}>
-                  {card.isCount
-                    ? <CountUp target={card.value} />
-                    : <><CountUp target={Math.abs(Math.round(card.value / 1000))} /> K ₭</>}
+                  {card.isCount ? (
+                    <CountUp target={card.value} />
+                  ) : (
+                    <>
+                      <CountUp target={Math.abs(Math.round(card.value / 1000))} /> K ₭
+                    </>
+                  )}
                 </p>
                 {card.trend ? (
-                  <span className={`mt-1.5 inline-block rounded px-1.5 py-0.5 text-[10px] font-medium ${card.bgClass} ${card.colorClass}`}>
+                  <span
+                    className={`mt-1.5 inline-block rounded px-1.5 py-0.5 text-[10px] font-medium ${card.bgClass} ${card.colorClass}`}
+                  >
                     {card.trend}
                   </span>
                 ) : null}
@@ -410,16 +542,26 @@ function FinancePage() {
             <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-semibold">ລາຍຮັບ vs ລາຍຈ່າຍ</CardTitle>
               <div className="flex gap-3 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-primary" />ລາຍຮັບ</span>
-                <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-destructive" />ລາຍຈ່າຍ</span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-2 w-2 rounded-full bg-primary" />
+                  ລາຍຮັບ
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="inline-block h-2 w-2 rounded-full bg-destructive" />
+                  ລາຍຈ່າຍ
+                </span>
               </div>
             </div>
           </CardHeader>
           <CardContent>
             <div className="flex h-28 items-end gap-1.5">
               {monthlyData.map((d, i) => (
-                <div key={i} className="flex flex-1 flex-col items-center gap-1"
-                  onMouseEnter={() => setChartHover(i)} onMouseLeave={() => setChartHover(null)}>
+                <div
+                  key={i}
+                  className="flex flex-1 flex-col items-center gap-1"
+                  onMouseEnter={() => setChartHover(i)}
+                  onMouseLeave={() => setChartHover(null)}
+                >
                   <div className="flex w-full gap-0.5 items-end" style={{ height: 96 }}>
                     <div
                       className={`flex-1 rounded-t transition-all duration-300 ${chartHover === i ? "bg-primary" : "bg-primary/50"}`}
@@ -451,17 +593,26 @@ function FinancePage() {
                 <div className="flex items-center justify-between mb-1">
                   <button
                     type="button"
-                    onClick={() => c.memberId != null && navigate({ to: "/members", search: { member: c.memberId } })}
+                    onClick={() =>
+                      c.memberId != null &&
+                      navigate({ to: "/members", search: { member: c.memberId } })
+                    }
                     className="flex items-center gap-2 min-w-0 text-left hover:text-emerald-600 transition-colors"
                   >
                     <span className="text-xs font-bold text-emerald-600 w-5">#{i + 1}</span>
-                    <span className="text-xs text-foreground hover:underline break-words">{c.name}</span>
+                    <span className="text-xs text-foreground hover:underline break-words">
+                      {c.name}
+                    </span>
                   </button>
-                  <span className="text-xs font-semibold text-emerald-600">{formatLAK(c.amount)}</span>
+                  <span className="text-xs font-semibold text-emerald-600">
+                    {formatLAK(c.amount)}
+                  </span>
                 </div>
                 <div className="h-1.5 w-full rounded-full bg-muted overflow-hidden">
-                  <div className="h-full rounded-full bg-emerald-500 transition-all duration-700"
-                    style={{ width: `${(c.amount / (topContributors[0]?.amount || 1)) * 100}%` }} />
+                  <div
+                    className="h-full rounded-full bg-emerald-500 transition-all duration-700"
+                    style={{ width: `${(c.amount / (topContributors[0]?.amount || 1)) * 100}%` }}
+                  />
                 </div>
               </div>
             ))}
@@ -482,9 +633,14 @@ function FinancePage() {
                 <div className={`h-2 w-2 rounded-full flex-shrink-0 ${item.barClass}`} />
                 <span className="text-xs text-muted-foreground flex-1">{item.label}</span>
                 <div className="w-14 h-1.5 rounded-full bg-muted overflow-hidden">
-                  <div className={`h-full rounded-full ${item.barClass}`} style={{ width: `${item.pct}%` }} />
+                  <div
+                    className={`h-full rounded-full ${item.barClass}`}
+                    style={{ width: `${item.pct}%` }}
+                  />
                 </div>
-                <span className="text-xs font-medium text-foreground w-7 text-right">{item.pct}%</span>
+                <span className="text-xs font-medium text-foreground w-7 text-right">
+                  {item.pct}%
+                </span>
               </div>
             ))}
           </CardContent>
@@ -499,13 +655,13 @@ function FinancePage() {
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 value={search}
-                onChange={e => setSearch(e.target.value)}
+                onChange={(e) => setSearch(e.target.value)}
                 placeholder="ຄົ້ນຫາລາຍການ..."
                 className="pl-8 text-sm h-9"
               />
             </div>
             <div className="flex flex-wrap gap-1.5 flex-1">
-              {filters.map(f => (
+              {filters.map((f) => (
                 <button
                   key={f}
                   onClick={() => setActiveFilter(f)}
@@ -514,11 +670,13 @@ function FinancePage() {
                       ? "bg-primary text-primary-foreground"
                       : "bg-muted text-muted-foreground hover:bg-muted/80"
                   }`}
-                >{f}</button>
+                >
+                  {f}
+                </button>
               ))}
             </div>
             <div className="flex gap-1">
-              {dateFilters.map(d => (
+              {dateFilters.map((d) => (
                 <button
                   key={d}
                   onClick={() => setDateRange(d)}
@@ -527,7 +685,9 @@ function FinancePage() {
                       ? "border-primary/40 bg-primary/10 text-primary font-medium"
                       : "border-border bg-transparent text-muted-foreground hover:bg-muted"
                   }`}
-                >{d}</button>
+                >
+                  {d}
+                </button>
               ))}
             </div>
           </div>
@@ -548,18 +708,41 @@ function FinancePage() {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/40">
-                  {["ID", "ວັນທີ", "ປະເພດ", "ກິດຈະກຳ", "ຜູ້ກ່ຽວຂ້ອງ", "ໝວດ", "ຈຳນວນ", "ວິທີຊຳລະ", "ສະຖານະ", ""].map(h => (
-                    <TableHead key={h} className="text-xs font-semibold text-muted-foreground whitespace-nowrap">{h}</TableHead>
+                  {[
+                    "ID",
+                    "ວັນທີ",
+                    "ປະເພດ",
+                    "ກິດຈະກຳ",
+                    "ຜູ້ກ່ຽວຂ້ອງ",
+                    "ໝວດ",
+                    "ຈຳນວນ",
+                    "ວິທີຊຳລະ",
+                    "ສະຖານະ",
+                    "",
+                  ].map((h) => (
+                    <TableHead
+                      key={h}
+                      className="text-xs font-semibold text-muted-foreground whitespace-nowrap"
+                    >
+                      {h}
+                    </TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredTxn.map(t => (
+                {filteredTxn.map((t) => (
                   <TableRow key={t.id} className="hover:bg-muted/30 transition-colors">
-                    <TableCell className="font-mono text-xs text-muted-foreground">{t.id}</TableCell>
-                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">{t.date}</TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">
+                      {t.id}
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                      {t.date}
+                    </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={`text-[10px] whitespace-nowrap ${typeBadgeClass(t.type)}`}>
+                      <Badge
+                        variant="outline"
+                        className={`text-[10px] whitespace-nowrap ${typeBadgeClass(t.type)}`}
+                      >
                         {typeLabel[t.type] || t.type}
                       </Badge>
                     </TableCell>
@@ -568,7 +751,8 @@ function FinancePage() {
                       {(() => {
                         const m = t.memberId ? getMemberById(t.memberId) : null;
                         if (!m) return <span className="block break-words">{t.contributor}</span>;
-                        const addr = m.village + (m.province && m.province !== "-" ? `, ${m.province}` : "");
+                        const addr =
+                          m.village + (m.province && m.province !== "-" ? `, ${m.province}` : "");
                         return (
                           <button
                             type="button"
@@ -585,20 +769,50 @@ function FinancePage() {
                       })()}
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">{t.category}</TableCell>
-                    <TableCell className={`text-xs font-bold whitespace-nowrap ${t.amount > 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                      {t.amount > 0 ? "+" : ""}{formatLAK(t.amount)}
+                    <TableCell
+                      className={`text-xs font-bold whitespace-nowrap ${t.amount > 0 ? "text-emerald-600" : "text-rose-600"}`}
+                    >
+                      {t.amount > 0 ? "+" : ""}
+                      {formatLAK(t.amount)}
                     </TableCell>
                     <TableCell className="text-xs text-muted-foreground">{t.method}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className={`text-[10px] ${statusBadgeClass(t.status)}`}>
+                      <Badge
+                        variant="outline"
+                        className={`text-[10px] ${statusBadgeClass(t.status)}`}
+                      >
                         {statusLabel[t.status]}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" className="h-7 w-7" title="ເບິ່ງລາຍລະອຽດ" onClick={() => setViewTxn(t)}><Eye className="h-3.5 w-3.5" /></Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7" title="ແກ້ໄຂ" onClick={() => setEditTxn(t)}><Pencil className="h-3.5 w-3.5" /></Button>
-                        <Button variant="ghost" size="icon" className="h-7 w-7 text-rose-600 hover:text-rose-700 hover:bg-rose-50" title="ລຶບ" onClick={() => setDeleteTxn(t)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          title="ເບິ່ງລາຍລະອຽດ"
+                          onClick={() => setViewTxn(t)}
+                        >
+                          <Eye className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          title="ແກ້ໄຂ"
+                          onClick={() => setEditTxn(t)}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                          title="ລຶບ"
+                          onClick={() => setDeleteTxn(t)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
@@ -609,19 +823,21 @@ function FinancePage() {
 
           {/* Mobile stacked cards */}
           <div className="sm:hidden divide-y divide-border">
-            {filteredTxn.map(t => (
+            {filteredTxn.map((t) => (
               <div key={t.id} className="p-4 space-y-2">
                 <div className="flex items-start justify-between gap-2">
                   <div className="space-y-0.5">
                     {(() => {
                       const m = t.memberId ? getMemberById(t.memberId) : null;
-                      if (!m) return (
-                        <>
-                          <p className="text-sm font-medium leading-tight">{t.contributor}</p>
-                          <p className="text-xs text-muted-foreground">{t.event}</p>
-                        </>
-                      );
-                      const addr = m.village + (m.province && m.province !== "-" ? `, ${m.province}` : "");
+                      if (!m)
+                        return (
+                          <>
+                            <p className="text-sm font-medium leading-tight">{t.contributor}</p>
+                            <p className="text-xs text-muted-foreground">{t.event}</p>
+                          </>
+                        );
+                      const addr =
+                        m.village + (m.province && m.province !== "-" ? `, ${m.province}` : "");
                       return (
                         <>
                           <button
@@ -632,27 +848,62 @@ function FinancePage() {
                             <span className="hover:underline">{m.name}</span>
                             <span className="text-muted-foreground"> · {addr}</span>
                           </button>
-                          <p className="text-[11px] text-muted-foreground">Phaj {m.gen} · {t.event}</p>
+                          <p className="text-[11px] text-muted-foreground">
+                            Phaj {m.gen} · {t.event}
+                          </p>
                         </>
                       );
                     })()}
                   </div>
-                  <span className={`text-sm font-bold whitespace-nowrap ${t.amount > 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                    {t.amount > 0 ? "+" : ""}{formatLAK(t.amount)}
+                  <span
+                    className={`text-sm font-bold whitespace-nowrap ${t.amount > 0 ? "text-emerald-600" : "text-rose-600"}`}
+                  >
+                    {t.amount > 0 ? "+" : ""}
+                    {formatLAK(t.amount)}
                   </span>
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <Badge variant="outline" className={`text-[10px] ${typeBadgeClass(t.type)}`}>{typeLabel[t.type] || t.type}</Badge>
-                  <Badge variant="outline" className={`text-[10px] ${statusBadgeClass(t.status)}`}>{statusLabel[t.status]}</Badge>
+                  <Badge variant="outline" className={`text-[10px] ${typeBadgeClass(t.type)}`}>
+                    {typeLabel[t.type] || t.type}
+                  </Badge>
+                  <Badge variant="outline" className={`text-[10px] ${statusBadgeClass(t.status)}`}>
+                    {statusLabel[t.status]}
+                  </Badge>
                   <span className="text-[10px] text-muted-foreground font-mono">{t.id}</span>
                   <span className="text-[10px] text-muted-foreground ml-auto">{t.date}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-[11px] text-muted-foreground">{t.method} · {t.category}</span>
+                  <span className="text-[11px] text-muted-foreground">
+                    {t.method} · {t.category}
+                  </span>
                   <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" className="h-6 w-6" title="ເບິ່ງລາຍລະອຽດ" onClick={() => setViewTxn(t)}><Eye className="h-3 w-3" /></Button>
-                    <Button variant="ghost" size="icon" className="h-6 w-6" title="ແກ້ໄຂ" onClick={() => setEditTxn(t)}><Pencil className="h-3 w-3" /></Button>
-                    <Button variant="ghost" size="icon" className="h-6 w-6 text-rose-600 hover:text-rose-700 hover:bg-rose-50" title="ລຶບ" onClick={() => setDeleteTxn(t)}><Trash2 className="h-3 w-3" /></Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      title="ເບິ່ງລາຍລະອຽດ"
+                      onClick={() => setViewTxn(t)}
+                    >
+                      <Eye className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      title="ແກ້ໄຂ"
+                      onClick={() => setEditTxn(t)}
+                    >
+                      <Pencil className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                      title="ລຶບ"
+                      onClick={() => setDeleteTxn(t)}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -668,7 +919,7 @@ function FinancePage() {
           <h2 className="text-base font-semibold text-foreground">ການເງິນກິດຈະກຳ</h2>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {eventFinances.map(ev => {
+          {eventFinances.map((ev) => {
             const pct = Math.min((ev.expenses / ev.collected) * 100, 100);
             const remaining = ev.collected - ev.expenses;
             return (
@@ -681,7 +932,12 @@ function FinancePage() {
                   <div className="flex items-start justify-between">
                     <div>
                       <p className="text-sm font-semibold leading-tight">{ev.title}</p>
-                      <Badge variant="outline" className="mt-1 text-[10px] bg-emerald-600/10 text-emerald-700 border-emerald-600/20">{ev.category}</Badge>
+                      <Badge
+                        variant="outline"
+                        className="mt-1 text-[10px] bg-emerald-600/10 text-emerald-700 border-emerald-600/20"
+                      >
+                        {ev.category}
+                      </Badge>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-xs">
@@ -709,8 +965,11 @@ function FinancePage() {
                     />
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-muted-foreground">ໃຊ້ {pct.toFixed(0)}% ຂອງງົບ</span>
-                      <span className={`font-semibold ${remaining >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                        {remaining >= 0 ? "+" : ""}{formatLAK(remaining)}
+                      <span
+                        className={`font-semibold ${remaining >= 0 ? "text-emerald-600" : "text-rose-600"}`}
+                      >
+                        {remaining >= 0 ? "+" : ""}
+                        {formatLAK(remaining)}
                       </span>
                     </div>
                   </div>
@@ -726,9 +985,15 @@ function FinancePage() {
         <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              {modalType === "income"
-                ? <><TrendingUp className="h-4 w-4 text-emerald-600" /> ເພີ່ມລາຍຮັບ</>
-                : <><TrendingDown className="h-4 w-4 text-rose-600" /> ເພີ່ມລາຍຈ່າຍ</>}
+              {modalType === "income" ? (
+                <>
+                  <TrendingUp className="h-4 w-4 text-emerald-600" /> ເພີ່ມລາຍຮັບ
+                </>
+              ) : (
+                <>
+                  <TrendingDown className="h-4 w-4 text-rose-600" /> ເພີ່ມລາຍຈ່າຍ
+                </>
+              )}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-3 pt-1">
@@ -737,11 +1002,15 @@ function FinancePage() {
               <label className="text-xs font-medium text-muted-foreground">ປະເພດທຸລະກຳ*</label>
               <select
                 value={form.type}
-                onChange={e => setField("type", e.target.value)}
+                onChange={(e) => setField("type", e.target.value)}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="">ເລືອກ...</option>
-                {["ຄ່າທຳນຽມ", "ບໍລິຈາກ", "ລາຍຈ່າຍ", "ສຸກເສີນ"].map(o => <option key={o} value={o}>{o}</option>)}
+                {["ຄ່າທຳນຽມ", "ບໍລິຈາກ", "ລາຍຈ່າຍ", "ສຸກເສີນ"].map((o) => (
+                  <option key={o} value={o}>
+                    {o}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -751,8 +1020,14 @@ function FinancePage() {
               <EventCombobox
                 events={EVENTS}
                 value={form.eventId}
-                onChange={(id) => { setField("eventId", id); setFormError(""); }}
-                onCreate={() => { setShowModal(false); navigate({ to: "/activities" }); }}
+                onChange={(id) => {
+                  setField("eventId", id);
+                  setFormError("");
+                }}
+                onCreate={() => {
+                  setShowModal(false);
+                  navigate({ to: "/activities" });
+                }}
               />
               {EVENTS.length === 0 && (
                 <p className="text-[11px] text-amber-600">ຍັງບໍ່ມີກິດຈະກຳໃນລະບົບ — ກະລຸນາສ້າງກິດຈະກຳກ່ອນ</p>
@@ -763,11 +1038,16 @@ function FinancePage() {
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5 min-w-0">
                       <CalendarDays className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
-                      <span className="truncate text-xs font-medium text-foreground">{formEvent.title}</span>
+                      <span className="truncate text-xs font-medium text-foreground">
+                        {formEvent.title}
+                      </span>
                     </div>
                     <button
                       type="button"
-                      onClick={() => { setShowModal(false); navigate({ to: "/activities" }); }}
+                      onClick={() => {
+                        setShowModal(false);
+                        navigate({ to: "/activities" });
+                      }}
                       className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-600 hover:underline shrink-0"
                     >
                       <ExternalLink className="h-3 w-3" /> ເບິ່ງ
@@ -776,15 +1056,21 @@ function FinancePage() {
                   <div className="mt-2 grid grid-cols-3 gap-2 text-center">
                     <div>
                       <p className="text-[10px] text-muted-foreground">ລາຍຮັບ</p>
-                      <p className="text-xs font-bold text-emerald-600">{formatLAK(formEventTotals.income)}</p>
+                      <p className="text-xs font-bold text-emerald-600">
+                        {formatLAK(formEventTotals.income)}
+                      </p>
                     </div>
                     <div>
                       <p className="text-[10px] text-muted-foreground">ລາຍຈ່າຍ</p>
-                      <p className="text-xs font-bold text-rose-600">{formatLAK(formEventTotals.expense)}</p>
+                      <p className="text-xs font-bold text-rose-600">
+                        {formatLAK(formEventTotals.expense)}
+                      </p>
                     </div>
                     <div>
                       <p className="text-[10px] text-muted-foreground">ຍອດເຫຼືອ</p>
-                      <p className="text-xs font-bold text-sky-600">{formatLAK(formEventTotals.balance)}</p>
+                      <p className="text-xs font-bold text-sky-600">
+                        {formatLAK(formEventTotals.balance)}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -793,38 +1079,50 @@ function FinancePage() {
 
             {/* ຜູ້ກ່ຽວຂ້ອງ */}
             <div className="space-y-1">
-              <label className="text-xs font-medium text-muted-foreground">{modalType === "income" ? "ຜູ້ບໍລິຈາກ (ບໍ່ບັງຄັບ)" : "ຜູ້ຮັບ (ບໍ່ບັງຄັບ)"}</label>
+              <label className="text-xs font-medium text-muted-foreground">
+                {modalType === "income" ? "ຜູ້ບໍລິຈາກ (ບໍ່ບັງຄັບ)" : "ຜູ້ຮັບ (ບໍ່ບັງຄັບ)"}
+              </label>
               {modalType === "income" ? (
                 <>
                   <SearchableMemberSelect
                     value={form.memberId ?? ""}
-                    onChange={(id) => { setField("memberId", id); setFormError(""); }}
+                    onChange={(id) => {
+                      setField("memberId", id);
+                      setFormError("");
+                    }}
                     placeholder="ເລືອກຜູ້ບໍລິຈາກຈາກລາຍຊື່ສະມາຊິກ..."
                   />
-                  {form.memberId && (() => {
-                    const m = getMemberById(form.memberId);
-                    return m ? (
-                      <p className="text-[11px] text-muted-foreground pl-1">
-                        Phaj {m.gen} · {m.village}{m.province && m.province !== "-" ? `, ${m.province}` : ""}
-                      </p>
-                    ) : null;
-                  })()}
+                  {form.memberId &&
+                    (() => {
+                      const m = getMemberById(form.memberId);
+                      return m ? (
+                        <p className="text-[11px] text-muted-foreground pl-1">
+                          Phaj {m.gen} · {m.village}
+                          {m.province && m.province !== "-" ? `, ${m.province}` : ""}
+                        </p>
+                      ) : null;
+                    })()}
                 </>
               ) : (
                 <>
                   <SearchableMemberSelect
                     value={form.memberId ?? ""}
-                    onChange={(id) => { setField("memberId", id); setFormError(""); }}
+                    onChange={(id) => {
+                      setField("memberId", id);
+                      setFormError("");
+                    }}
                     placeholder="ເລືອກຜູ້ຮັບຈາກລາຍຊື່ສະມາຊິກ..."
                   />
-                  {form.memberId && (() => {
-                    const m = getMemberById(form.memberId);
-                    return m ? (
-                      <p className="text-[11px] text-muted-foreground pl-1">
-                        Phaj {m.gen} · {m.village}{m.province && m.province !== "-" ? `, ${m.province}` : ""}
-                      </p>
-                    ) : null;
-                  })()}
+                  {form.memberId &&
+                    (() => {
+                      const m = getMemberById(form.memberId);
+                      return m ? (
+                        <p className="text-[11px] text-muted-foreground pl-1">
+                          Phaj {m.gen} · {m.village}
+                          {m.province && m.province !== "-" ? `, ${m.province}` : ""}
+                        </p>
+                      ) : null;
+                    })()}
                 </>
               )}
             </div>
@@ -832,7 +1130,13 @@ function FinancePage() {
             {/* ຈຳນວນເງິນ */}
             <div className="space-y-1">
               <label className="text-xs font-medium text-muted-foreground">ຈຳນວນເງິນ* (₭)</label>
-              <Input type="number" value={form.amount} onChange={e => setField("amount", e.target.value)} placeholder="0" className="h-9 text-sm" />
+              <Input
+                type="number"
+                value={form.amount}
+                onChange={(e) => setField("amount", e.target.value)}
+                placeholder="0"
+                className="h-9 text-sm"
+              />
             </div>
 
             {/* ວິທີຊຳລະ */}
@@ -840,11 +1144,15 @@ function FinancePage() {
               <label className="text-xs font-medium text-muted-foreground">ວິທີຊຳລະ</label>
               <select
                 value={form.method}
-                onChange={e => setField("method", e.target.value)}
+                onChange={(e) => setField("method", e.target.value)}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="">ເລືອກ...</option>
-                {["ເງິນສົດ", "ໂອນເງິນ", "PromptPay", "ອື່ນໆ"].map(o => <option key={o} value={o}>{o}</option>)}
+                {["ເງິນສົດ", "ໂອນເງິນ", "PromptPay", "ອື່ນໆ"].map((o) => (
+                  <option key={o} value={o}>
+                    {o}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -853,13 +1161,17 @@ function FinancePage() {
               <label className="text-xs font-medium text-muted-foreground">ໝວດໝູ່</label>
               <select
                 value={form.category}
-                onChange={e => setField("category", e.target.value)}
+                onChange={(e) => setField("category", e.target.value)}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="">ເລືອກ...</option>
-                {["ງານຕະກູນ", "ງານດອງ", "ຊ່ວຍເຫຼືອຜ່າຕັດ", "ງານສົບ", "ງານບຸນ", "ປະຊຸມ", "ສຸກເສີນ", "ອື່ນໆ"].map(o => (
-                  <option key={o} value={o}>{o}</option>
-                ))}
+                {["ງານຕະກູນ", "ງານດອງ", "ຊ່ວຍເຫຼືອຜ່າຕັດ", "ງານສົບ", "ງານບຸນ", "ປະຊຸມ", "ສຸກເສີນ", "ອື່ນໆ"].map(
+                  (o) => (
+                    <option key={o} value={o}>
+                      {o}
+                    </option>
+                  ),
+                )}
               </select>
             </div>
 
@@ -868,7 +1180,7 @@ function FinancePage() {
               <label className="text-xs font-medium text-muted-foreground">ໝາຍເຫດ</label>
               <textarea
                 value={form.note}
-                onChange={e => setField("note", e.target.value)}
+                onChange={(e) => setField("note", e.target.value)}
                 placeholder="ບັນທຶກເພີ່ມເຕີມ..."
                 rows={3}
                 className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-vertical"
@@ -883,158 +1195,260 @@ function FinancePage() {
 
             <Separator />
             <div className="flex gap-2 pt-1">
-              <Button variant="outline" className="flex-1" onClick={() => setShowModal(false)}>ຍົກເລີກ</Button>
-              <Button className="flex-[2]" onClick={handleSave}>ບັນທຶກ</Button>
+              <Button variant="outline" className="flex-1" onClick={() => setShowModal(false)}>
+                ຍົກເລີກ
+              </Button>
+              <Button className="flex-[2]" onClick={handleSave}>
+                ບັນທຶກ
+              </Button>
             </div>
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Event Detail Modal */}
-      <Dialog open={!!selectedEvent} onOpenChange={open => !open && setSelectedEvent(null)}>
+      <Dialog open={!!selectedEvent} onOpenChange={(open) => !open && setSelectedEvent(null)}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
-          {selectedEvent && (() => {
-            const evId = selectedEvent.id;
-            const evTxns = storeTxns.filter(t => t.eventId === evId);
-            const donations = evTxns
-              .filter(t => t.direction !== "expense")
-              .sort((a, b) => String(b.date).localeCompare(String(a.date)) || (b.createdAt || 0) - (a.createdAt || 0));
-            const expensesList = evTxns
-              .filter(t => t.direction === "expense")
-              .sort((a, b) => String(b.date).localeCompare(String(a.date)) || (b.createdAt || 0) - (a.createdAt || 0));
-            const history = [...evTxns]
-              .sort((a, b) => String(b.date).localeCompare(String(a.date)) || (b.createdAt || 0) - (a.createdAt || 0));
-            // Recipients (ຜູ້ຮັບ) — aggregated from expenses for this event
-            const recipientMap = new Map();
-            for (const x of expensesList) {
-              const name = (x.contributor || "").trim() || "(ບໍ່ລະບຸ)";
-              const cur = recipientMap.get(name) ?? { name, amount: 0, count: 0 };
-              cur.amount += Math.abs(x.amount || 0);
-              cur.count += 1;
-              recipientMap.set(name, cur);
-            }
-            const recipients = [...recipientMap.values()].sort((a, b) => b.amount - a.amount);
-            const attendeesLive = new Set(allParticipants?.[evId] ?? []).size;
-            const donorsLive = new Set(
-              donations.map(t => t.memberId != null ? `m:${t.memberId}` : `n:${(t.contributor || "").trim()}`)
-                .filter(k => k !== "n:")
-            ).size;
+          {selectedEvent &&
+            (() => {
+              const evId = selectedEvent.id;
+              const evTxns = storeTxns.filter((t) => t.eventId === evId);
+              const donations = evTxns
+                .filter((t) => t.direction !== "expense")
+                .sort(
+                  (a, b) =>
+                    String(b.date).localeCompare(String(a.date)) ||
+                    (b.createdAt || 0) - (a.createdAt || 0),
+                );
+              const expensesList = evTxns
+                .filter((t) => t.direction === "expense")
+                .sort(
+                  (a, b) =>
+                    String(b.date).localeCompare(String(a.date)) ||
+                    (b.createdAt || 0) - (a.createdAt || 0),
+                );
+              const history = [...evTxns].sort(
+                (a, b) =>
+                  String(b.date).localeCompare(String(a.date)) ||
+                  (b.createdAt || 0) - (a.createdAt || 0),
+              );
+              // Recipients (ຜູ້ຮັບ) — aggregated from expenses for this event
+              const recipientMap = new Map();
+              for (const x of expensesList) {
+                const name = (x.contributor || "").trim() || "(ບໍ່ລະບຸ)";
+                const cur = recipientMap.get(name) ?? { name, amount: 0, count: 0 };
+                cur.amount += Math.abs(x.amount || 0);
+                cur.count += 1;
+                recipientMap.set(name, cur);
+              }
+              const recipients = [...recipientMap.values()].sort((a, b) => b.amount - a.amount);
+              const attendeesLive = new Set(allParticipants?.[evId] ?? []).size;
+              const donorsLive = new Set(
+                donations
+                  .map((t) =>
+                    t.memberId != null ? `m:${t.memberId}` : `n:${(t.contributor || "").trim()}`,
+                  )
+                  .filter((k) => k !== "n:"),
+              ).size;
 
-            const personLabel = (t) => {
-              const m = t.memberId ? getMemberById(t.memberId) : null;
-              return (m?.name || t.contributor || "(ບໍ່ລະບຸ)");
-            };
+              const personLabel = (t) => {
+                const m = t.memberId ? getMemberById(t.memberId) : null;
+                return m?.name || t.contributor || "(ບໍ່ລະບຸ)";
+              };
 
-            return (
-              <>
-                <DialogHeader>
-                  <DialogTitle className="break-words">{selectedEvent.title}</DialogTitle>
-                  <Badge variant="outline" className="w-fit text-xs bg-emerald-600/10 text-emerald-700 border-emerald-600/20">{selectedEvent.category}</Badge>
-                </DialogHeader>
-                <div className="grid grid-cols-3 gap-3 my-2">
-                  {[
-                    { label: "ລາຍຮັບລວມ", value: formatLAK(selectedEvent.collected), cls: "text-emerald-600" },
-                    { label: "ລາຍຈ່າຍລວມ", value: formatLAK(selectedEvent.expenses), cls: "text-rose-600" },
-                    { label: "ຍອດເຫຼືອ", value: formatLAK(selectedEvent.collected - selectedEvent.expenses), cls: "text-sky-600" },
-                    { label: "ຜູ້ບໍລິຈາກ", value: donorsLive + " ຄົນ", cls: "text-amber-600" },
-                    { label: "ຜູ້ເຂົ້າຮ່ວມ", value: attendeesLive + " ຄົນ", cls: "text-violet-600" },
-                    { label: "ລາຍການ", value: evTxns.length + " ລາຍການ", cls: "text-teal-600" },
-                  ].map((s, i) => (
-                    <div key={i} className="rounded-lg border bg-muted/30 p-3 text-center">
-                      <p className="text-[10px] text-muted-foreground mb-1">{s.label}</p>
-                      <p className={`text-sm font-bold ${s.cls}`}>{s.value}</p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* ── ຜູ້ບໍລິຈາກ — donations linked to this event only ── */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 border-b pb-1.5">
-                    <Banknote className="h-3.5 w-3.5 text-emerald-600" />
-                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">ຜູ້ບໍລິຈາກ ({donations.length})</h4>
-                  </div>
-                  {donations.length === 0 ? (
-                    <p className="text-[11px] italic text-muted-foreground py-1">ຍັງບໍ່ມີລາຍການບໍລິຈາກສຳລັບກິດຈະກຳນີ້</p>
-                  ) : donations.map((t) => (
-                    <div key={t.id} className="flex items-start justify-between gap-3 rounded-lg bg-muted/30 px-3 py-2.5">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-medium text-foreground break-words">{personLabel(t)}</p>
-                        <p className="text-[10px] text-muted-foreground">{t.date} · {t.method || "—"}{t.category ? ` · ${t.category}` : ""}</p>
+              return (
+                <>
+                  <DialogHeader>
+                    <DialogTitle className="break-words">{selectedEvent.title}</DialogTitle>
+                    <Badge
+                      variant="outline"
+                      className="w-fit text-xs bg-emerald-600/10 text-emerald-700 border-emerald-600/20"
+                    >
+                      {selectedEvent.category}
+                    </Badge>
+                  </DialogHeader>
+                  <div className="grid grid-cols-3 gap-3 my-2">
+                    {[
+                      {
+                        label: "ລາຍຮັບລວມ",
+                        value: formatLAK(selectedEvent.collected),
+                        cls: "text-emerald-600",
+                      },
+                      {
+                        label: "ລາຍຈ່າຍລວມ",
+                        value: formatLAK(selectedEvent.expenses),
+                        cls: "text-rose-600",
+                      },
+                      {
+                        label: "ຍອດເຫຼືອ",
+                        value: formatLAK(selectedEvent.collected - selectedEvent.expenses),
+                        cls: "text-sky-600",
+                      },
+                      { label: "ຜູ້ບໍລິຈາກ", value: donorsLive + " ຄົນ", cls: "text-amber-600" },
+                      { label: "ຜູ້ເຂົ້າຮ່ວມ", value: attendeesLive + " ຄົນ", cls: "text-violet-600" },
+                      { label: "ລາຍການ", value: evTxns.length + " ລາຍການ", cls: "text-teal-600" },
+                    ].map((s, i) => (
+                      <div key={i} className="rounded-lg border bg-muted/30 p-3 text-center">
+                        <p className="text-[10px] text-muted-foreground mb-1">{s.label}</p>
+                        <p className={`text-sm font-bold ${s.cls}`}>{s.value}</p>
                       </div>
-                      <span className="text-xs font-semibold text-emerald-600 whitespace-nowrap">+{formatLAK(t.amount)}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* ── ລາຍຈ່າຍ — expenses for this event only ── */}
-                <div className="space-y-2 mt-3">
-                  <div className="flex items-center gap-2 border-b pb-1.5">
-                    <Receipt className="h-3.5 w-3.5 text-rose-600" />
-                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">ລາຍຈ່າຍ ({expensesList.length})</h4>
+                    ))}
                   </div>
-                  {expensesList.length === 0 ? (
-                    <p className="text-[11px] italic text-muted-foreground py-1">ຍັງບໍ່ມີລາຍຈ່າຍສຳລັບກິດຈະກຳນີ້</p>
-                  ) : expensesList.map((t) => (
-                    <div key={t.id} className="flex items-start justify-between gap-3 rounded-lg bg-muted/30 px-3 py-2.5">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-medium text-foreground break-words">{(t.contributor || "(ບໍ່ລະບຸ)")}</p>
-                        <p className="text-[10px] text-muted-foreground">{t.date} · {t.method || "—"}{t.category ? ` · ${t.category}` : ""}{t.note ? ` · ${t.note}` : ""}</p>
-                      </div>
-                      <span className="text-xs font-semibold text-rose-600 whitespace-nowrap">-{formatLAK(t.amount)}</span>
-                    </div>
-                  ))}
-                </div>
 
-                {/* ── ຜູ້ຮັບ — recipients aggregated from expenses ── */}
-                <div className="space-y-2 mt-3">
-                  <div className="flex items-center gap-2 border-b pb-1.5">
-                    <ArrowDownLeft className="h-3.5 w-3.5 text-sky-600" />
-                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">ຜູ້ຮັບ ({recipients.length})</h4>
-                  </div>
-                  {recipients.length === 0 ? (
-                    <p className="text-[11px] italic text-muted-foreground py-1">ຍັງບໍ່ມີຜູ້ຮັບສຳລັບກິດຈະກຳນີ້</p>
-                  ) : recipients.map((r) => (
-                    <div key={r.name} className="flex items-start justify-between gap-3 rounded-lg bg-muted/30 px-3 py-2.5">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-medium text-foreground break-words">{r.name}</p>
-                        <p className="text-[10px] text-muted-foreground">{r.count} ຄັ້ງ</p>
-                      </div>
-                      <span className="text-xs font-semibold text-sky-600 whitespace-nowrap">{formatLAK(r.amount)}</span>
+                  {/* ── ຜູ້ບໍລິຈາກ — donations linked to this event only ── */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 border-b pb-1.5">
+                      <Banknote className="h-3.5 w-3.5 text-emerald-600" />
+                      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                        ຜູ້ບໍລິຈາກ ({donations.length})
+                      </h4>
                     </div>
-                  ))}
-                </div>
-
-                {/* ── ປະຫວັດ — every transaction (income + expense) newest first ── */}
-                <div className="space-y-2 mt-3">
-                  <div className="flex items-center gap-2 border-b pb-1.5">
-                    <AlertTriangle className="h-3.5 w-3.5 text-muted-foreground" />
-                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">ປະຫວັດ ({history.length})</h4>
-                  </div>
-                  {history.length === 0 ? (
-                    <p className="text-[11px] italic text-muted-foreground py-1">ຍັງບໍ່ມີທຸລະກຳສຳລັບກິດຈະກຳນີ້</p>
-                  ) : history.map((t) => {
-                    const isExpense = t.direction === "expense";
-                    return (
-                      <div key={t.id} className="flex items-start justify-between gap-3 rounded-lg bg-muted/30 px-3 py-2.5">
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <Badge variant="outline" className={`text-[9px] ${isExpense ? "bg-rose-600/10 text-rose-700 border-rose-600/20" : "bg-emerald-600/10 text-emerald-700 border-emerald-600/20"}`}>
-                              {isExpense ? "ລາຍຈ່າຍ" : "ລາຍຮັບ"}
-                            </Badge>
-                            <p className="text-xs font-medium text-foreground break-words">{personLabel(t)}</p>
+                    {donations.length === 0 ? (
+                      <p className="text-[11px] italic text-muted-foreground py-1">
+                        ຍັງບໍ່ມີລາຍການບໍລິຈາກສຳລັບກິດຈະກຳນີ້
+                      </p>
+                    ) : (
+                      donations.map((t) => (
+                        <div
+                          key={t.id}
+                          className="flex items-start justify-between gap-3 rounded-lg bg-muted/30 px-3 py-2.5"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-medium text-foreground break-words">
+                              {personLabel(t)}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground">
+                              {t.date} · {t.method || "—"}
+                              {t.category ? ` · ${t.category}` : ""}
+                            </p>
                           </div>
-                          <p className="text-[10px] text-muted-foreground mt-0.5">{t.date} · {t.method || "—"}{t.category ? ` · ${t.category}` : ""}</p>
+                          <span className="text-xs font-semibold text-emerald-600 whitespace-nowrap">
+                            +{formatLAK(t.amount)}
+                          </span>
                         </div>
-                        <span className={`text-xs font-semibold whitespace-nowrap ${isExpense ? "text-rose-600" : "text-emerald-600"}`}>
-                          {isExpense ? "-" : "+"}{formatLAK(t.amount)}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </>
-            );
-          })()}
+                      ))
+                    )}
+                  </div>
+
+                  {/* ── ລາຍຈ່າຍ — expenses for this event only ── */}
+                  <div className="space-y-2 mt-3">
+                    <div className="flex items-center gap-2 border-b pb-1.5">
+                      <Receipt className="h-3.5 w-3.5 text-rose-600" />
+                      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                        ລາຍຈ່າຍ ({expensesList.length})
+                      </h4>
+                    </div>
+                    {expensesList.length === 0 ? (
+                      <p className="text-[11px] italic text-muted-foreground py-1">
+                        ຍັງບໍ່ມີລາຍຈ່າຍສຳລັບກິດຈະກຳນີ້
+                      </p>
+                    ) : (
+                      expensesList.map((t) => (
+                        <div
+                          key={t.id}
+                          className="flex items-start justify-between gap-3 rounded-lg bg-muted/30 px-3 py-2.5"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-medium text-foreground break-words">
+                              {t.contributor || "(ບໍ່ລະບຸ)"}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground">
+                              {t.date} · {t.method || "—"}
+                              {t.category ? ` · ${t.category}` : ""}
+                              {t.note ? ` · ${t.note}` : ""}
+                            </p>
+                          </div>
+                          <span className="text-xs font-semibold text-rose-600 whitespace-nowrap">
+                            -{formatLAK(t.amount)}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* ── ຜູ້ຮັບ — recipients aggregated from expenses ── */}
+                  <div className="space-y-2 mt-3">
+                    <div className="flex items-center gap-2 border-b pb-1.5">
+                      <ArrowDownLeft className="h-3.5 w-3.5 text-sky-600" />
+                      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                        ຜູ້ຮັບ ({recipients.length})
+                      </h4>
+                    </div>
+                    {recipients.length === 0 ? (
+                      <p className="text-[11px] italic text-muted-foreground py-1">
+                        ຍັງບໍ່ມີຜູ້ຮັບສຳລັບກິດຈະກຳນີ້
+                      </p>
+                    ) : (
+                      recipients.map((r) => (
+                        <div
+                          key={r.name}
+                          className="flex items-start justify-between gap-3 rounded-lg bg-muted/30 px-3 py-2.5"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-medium text-foreground break-words">
+                              {r.name}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground">{r.count} ຄັ້ງ</p>
+                          </div>
+                          <span className="text-xs font-semibold text-sky-600 whitespace-nowrap">
+                            {formatLAK(r.amount)}
+                          </span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+
+                  {/* ── ປະຫວັດ — every transaction (income + expense) newest first ── */}
+                  <div className="space-y-2 mt-3">
+                    <div className="flex items-center gap-2 border-b pb-1.5">
+                      <AlertTriangle className="h-3.5 w-3.5 text-muted-foreground" />
+                      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                        ປະຫວັດ ({history.length})
+                      </h4>
+                    </div>
+                    {history.length === 0 ? (
+                      <p className="text-[11px] italic text-muted-foreground py-1">
+                        ຍັງບໍ່ມີທຸລະກຳສຳລັບກິດຈະກຳນີ້
+                      </p>
+                    ) : (
+                      history.map((t) => {
+                        const isExpense = t.direction === "expense";
+                        return (
+                          <div
+                            key={t.id}
+                            className="flex items-start justify-between gap-3 rounded-lg bg-muted/30 px-3 py-2.5"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <Badge
+                                  variant="outline"
+                                  className={`text-[9px] ${isExpense ? "bg-rose-600/10 text-rose-700 border-rose-600/20" : "bg-emerald-600/10 text-emerald-700 border-emerald-600/20"}`}
+                                >
+                                  {isExpense ? "ລາຍຈ່າຍ" : "ລາຍຮັບ"}
+                                </Badge>
+                                <p className="text-xs font-medium text-foreground break-words">
+                                  {personLabel(t)}
+                                </p>
+                              </div>
+                              <p className="text-[10px] text-muted-foreground mt-0.5">
+                                {t.date} · {t.method || "—"}
+                                {t.category ? ` · ${t.category}` : ""}
+                              </p>
+                            </div>
+                            <span
+                              className={`text-xs font-semibold whitespace-nowrap ${isExpense ? "text-rose-600" : "text-emerald-600"}`}
+                            >
+                              {isExpense ? "-" : "+"}
+                              {formatLAK(t.amount)}
+                            </span>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </>
+              );
+            })()}
         </DialogContent>
       </Dialog>
 
@@ -1060,21 +1474,35 @@ function FinancePage() {
                   ["ສະຖານະ", statusLabel[viewTxn.status] || viewTxn.status],
                   ["ບັນທຶກ", viewTxn.note || "-"],
                 ].map(([k, v]) => (
-                  <div key={k} className="flex justify-between gap-3 border-b border-border/50 pb-1.5">
+                  <div
+                    key={k}
+                    className="flex justify-between gap-3 border-b border-border/50 pb-1.5"
+                  >
                     <span className="text-xs text-muted-foreground">{k}</span>
                     <span className="text-xs font-medium text-foreground text-right">{v}</span>
                   </div>
                 ))}
                 <div className="flex justify-between pt-2">
                   <span className="text-xs text-muted-foreground">ຈຳນວນ</span>
-                  <span className={`text-lg font-bold ${viewTxn.amount > 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                    {viewTxn.amount > 0 ? "+" : ""}{formatLAK(viewTxn.amount)}
+                  <span
+                    className={`text-lg font-bold ${viewTxn.amount > 0 ? "text-emerald-600" : "text-rose-600"}`}
+                  >
+                    {viewTxn.amount > 0 ? "+" : ""}
+                    {formatLAK(viewTxn.amount)}
                   </span>
                 </div>
               </div>
               <div className="flex gap-2 pt-2">
-                <Button variant="outline" className="flex-1" onClick={() => setViewTxn(null)}>ປິດ</Button>
-                <Button className="flex-1 gap-1.5" onClick={() => { setEditTxn(viewTxn); setViewTxn(null); }}>
+                <Button variant="outline" className="flex-1" onClick={() => setViewTxn(null)}>
+                  ປິດ
+                </Button>
+                <Button
+                  className="flex-1 gap-1.5"
+                  onClick={() => {
+                    setEditTxn(viewTxn);
+                    setViewTxn(null);
+                  }}
+                >
                   <Pencil className="h-4 w-4" /> ແກ້ໄຂ
                 </Button>
               </div>
@@ -1096,34 +1524,66 @@ function FinancePage() {
               <div className="space-y-3 text-sm">
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">ຜູ້ກ່ຽວຂ້ອງ</label>
-                  <Input value={editForm.contributor} onChange={(e) => setEF("contributor", e.target.value)} className="h-9" />
+                  <Input
+                    value={editForm.contributor}
+                    onChange={(e) => setEF("contributor", e.target.value)}
+                    className="h-9"
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">ຈຳນວນເງິນ (₭)</label>
-                  <Input type="number" value={editForm.amount} onChange={(e) => setEF("amount", e.target.value)} className="h-9" />
+                  <Input
+                    type="number"
+                    value={editForm.amount}
+                    onChange={(e) => setEF("amount", e.target.value)}
+                    className="h-9"
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">ໝວດ</label>
-                  <Input value={editForm.category} onChange={(e) => setEF("category", e.target.value)} className="h-9" />
+                  <Input
+                    value={editForm.category}
+                    onChange={(e) => setEF("category", e.target.value)}
+                    className="h-9"
+                  />
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">ວິທີຊຳລະ</label>
-                  <select value={editForm.method} onChange={(e) => setEF("method", e.target.value)} className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm">
+                  <select
+                    value={editForm.method}
+                    onChange={(e) => setEF("method", e.target.value)}
+                    className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
+                  >
                     <option value="">— ເລືອກ —</option>
-                    {["ເງິນສົດ","ໂອນເງິນ","ບັດ"].map((m) => <option key={m} value={m}>{m}</option>)}
+                    {["ເງິນສົດ", "ໂອນເງິນ", "ບັດ"].map((m) => (
+                      <option key={m} value={m}>
+                        {m}
+                      </option>
+                    ))}
                   </select>
                 </div>
                 <div className="space-y-1.5">
                   <label className="text-xs font-medium text-muted-foreground">ບັນທຶກ</label>
-                  <textarea value={editForm.note} onChange={(e) => setEF("note", e.target.value)} rows={3} className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
+                  <textarea
+                    value={editForm.note}
+                    onChange={(e) => setEF("note", e.target.value)}
+                    rows={3}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  />
                 </div>
                 {!String(editTxn.id).startsWith("TXN-0") || true ? null : (
-                  <p className="text-[10px] text-muted-foreground">ໝາຍເຫດ: ທຸລະກຳເລີ່ມຕົ້ນແມ່ນຂໍ້ມູນຕົວຢ່າງ — ການແກ້ໄຂຈະຖືກບັນທຶກໃນລະບົບແບບເຊດຊັນ.</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    ໝາຍເຫດ: ທຸລະກຳເລີ່ມຕົ້ນແມ່ນຂໍ້ມູນຕົວຢ່າງ — ການແກ້ໄຂຈະຖືກບັນທຶກໃນລະບົບແບບເຊດຊັນ.
+                  </p>
                 )}
               </div>
               <div className="flex gap-2 pt-2">
-                <Button variant="outline" className="flex-1" onClick={() => setEditTxn(null)}>ຍົກເລີກ</Button>
-                <Button className="flex-1" onClick={handleSaveEdit}>ບັນທຶກ</Button>
+                <Button variant="outline" className="flex-1" onClick={() => setEditTxn(null)}>
+                  ຍົກເລີກ
+                </Button>
+                <Button className="flex-1" onClick={handleSaveEdit}>
+                  ບັນທຶກ
+                </Button>
               </div>
             </>
           )}
@@ -1131,12 +1591,19 @@ function FinancePage() {
       </Dialog>
 
       {/* Delete Transaction Confirmation */}
-      <AlertDialog open={!!deleteTxn} onOpenChange={(o) => { if (!o) setDeleteTxn(null); }}>
+      <AlertDialog
+        open={!!deleteTxn}
+        onOpenChange={(o) => {
+          if (!o) setDeleteTxn(null);
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>ຢືນຢັນການລຶບທຸລະກຳ</AlertDialogTitle>
             <AlertDialogDescription>
-              {deleteTxn ? `ທ່ານກຳລັງລຶບ ${deleteTxn.id} (${deleteTxn.contributor || "-"}). ການກະທຳນີ້ບໍ່ສາມາດກັບຄືນໄດ້.` : ""}
+              {deleteTxn
+                ? `ທ່ານກຳລັງລຶບ ${deleteTxn.id} (${deleteTxn.contributor || "-"}). ການກະທຳນີ້ບໍ່ສາມາດກັບຄືນໄດ້.`
+                : ""}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1150,7 +1617,9 @@ function FinancePage() {
                 }
                 setDeleteTxn(null);
               }}
-            >ລຶບ</AlertDialogAction>
+            >
+              ລຶບ
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

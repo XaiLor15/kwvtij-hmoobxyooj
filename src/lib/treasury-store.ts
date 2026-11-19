@@ -25,14 +25,28 @@ function fromRow(r) {
   };
 }
 const DB_COLS = new Set([
-  "id","created_at","date","direction","amount","description",
-  "event_id","event_title","category","member_id",
-  "type","contributor","method","note",
+  "id",
+  "created_at",
+  "date",
+  "direction",
+  "amount",
+  "description",
+  "event_id",
+  "event_title",
+  "category",
+  "member_id",
+  "type",
+  "contributor",
+  "method",
+  "note",
 ]);
 function toRow(t) {
   const row: any = {};
-  const map: Record<string,string> = {
-    createdAt: "created_at", eventId: "event_id", eventTitle: "event_title", memberId: "member_id",
+  const map: Record<string, string> = {
+    createdAt: "created_at",
+    eventId: "event_id",
+    eventTitle: "event_title",
+    memberId: "member_id",
   };
   for (const k of Object.keys(t)) {
     const col = map[k] ?? k;
@@ -41,20 +55,38 @@ function toRow(t) {
   return row;
 }
 
-
 let transactions = [];
 let snapshot = [];
 const listeners = new Set();
 let initialized = false;
-function emit() { snapshot = transactions.slice(); for (const l of listeners) l(); }
-function subscribe(cb) { ensureInit(); listeners.add(cb); return () => listeners.delete(cb); }
-function getSnapshot() { return snapshot; }
+function emit() {
+  snapshot = transactions.slice();
+  for (const l of listeners) l();
+}
+function subscribe(cb) {
+  ensureInit();
+  listeners.add(cb);
+  return () => listeners.delete(cb);
+}
+function getSnapshot() {
+  return snapshot;
+}
 
 async function hydrate() {
   // Financial records are restricted to signed-in members/admins.
-  if (!(await isAuthenticated())) { transactions = []; emit(); return; }
-  const { data, error } = await supabase.from("transactions").select("*").order("created_at", { ascending: false });
-  if (error) { console.error("tx hydrate", error); return; }
+  if (!(await isAuthenticated())) {
+    transactions = [];
+    emit();
+    return;
+  }
+  const { data, error } = await supabase
+    .from("transactions")
+    .select("*")
+    .order("created_at", { ascending: false });
+  if (error) {
+    console.error("tx hydrate", error);
+    return;
+  }
   transactions = (data ?? []).map(fromRow);
   emit();
 }
@@ -63,8 +95,11 @@ function ensureInit() {
   if (initialized || typeof window === "undefined") return;
   initialized = true;
   hydrate();
-  supabase.auth.onAuthStateChange(() => { hydrate(); });
-  supabase.channel("realtime:transactions")
+  supabase.auth.onAuthStateChange(() => {
+    hydrate();
+  });
+  supabase
+    .channel("realtime:transactions")
     .on("postgres_changes", { event: "*", schema: "public", table: "transactions" }, (payload) => {
       const { eventType, new: nr, old: or } = payload;
       if (eventType === "INSERT") {
@@ -76,7 +111,8 @@ function ensureInit() {
         transactions = transactions.filter((t) => t.id !== or.id);
       }
       emit();
-    }).subscribe();
+    })
+    .subscribe();
 }
 
 export async function addTransaction(t) {
@@ -101,9 +137,14 @@ export async function updateTransaction(id, patch) {
   if (!assertPermission("edit", "finance")) return false;
   transactions = transactions.map((t) => (t.id === id ? { ...t, ...patch } : t));
   emit();
-  const row = toRow(patch); delete row.id;
+  const row = toRow(patch);
+  delete row.id;
   const { error } = await supabase.from("transactions").update(row).eq("id", id);
-  if (error) { console.error("updateTransaction", error); toast.error("ອັບເດດບໍ່ສຳເລັດ"); return false; }
+  if (error) {
+    console.error("updateTransaction", error);
+    toast.error("ອັບເດດບໍ່ສຳເລັດ");
+    return false;
+  }
   return true;
 }
 
@@ -112,7 +153,11 @@ export async function deleteTransaction(id) {
   transactions = transactions.filter((t) => t.id !== id);
   emit();
   const { error } = await supabase.from("transactions").delete().eq("id", id);
-  if (error) { console.error("deleteTransaction", error); toast.error("ລຶບບໍ່ສຳເລັດ"); return false; }
+  if (error) {
+    console.error("deleteTransaction", error);
+    toast.error("ລຶບບໍ່ສຳເລັດ");
+    return false;
+  }
   return true;
 }
 
@@ -129,7 +174,9 @@ export async function cascadeDeleteMemberDonations(memberId) {
     emit();
     const ids = targets.map((t) => t.id);
     const { error } = await supabase.from("transactions").delete().in("id", ids);
-    if (error) { console.error("cascadeDeleteMemberDonations", error); }
+    if (error) {
+      console.error("cascadeDeleteMemberDonations", error);
+    }
   }
   return before - transactions.length;
 }
@@ -140,12 +187,15 @@ export async function setTransactions(next) {
 }
 
 export function useTransactions() {
-  useEffect(() => { ensureInit(); }, []);
+  useEffect(() => {
+    ensureInit();
+  }, []);
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 
 export function eventTotals(txns, eventId) {
-  let income = 0, expense = 0;
+  let income = 0,
+    expense = 0;
   for (const t of txns) {
     if (t.eventId !== eventId) continue;
     if (t.direction === "expense") expense += Math.abs(t.amount);

@@ -8,12 +8,18 @@ function read<T>(key: string, fallback: T): T {
     const raw = window.localStorage.getItem(PREFIX + key);
     if (raw == null) return fallback;
     return JSON.parse(raw) as T;
-  } catch { return fallback; }
+  } catch {
+    return fallback;
+  }
 }
 
 function write<T>(key: string, value: T) {
   if (typeof window === "undefined") return;
-  try { window.localStorage.setItem(PREFIX + key, JSON.stringify(value)); } catch { /* noop */ }
+  try {
+    window.localStorage.setItem(PREFIX + key, JSON.stringify(value));
+  } catch {
+    /* noop */
+  }
 }
 
 /**

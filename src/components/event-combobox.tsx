@@ -2,11 +2,7 @@
 import { useState } from "react";
 import { Check, ChevronsUpDown, CalendarDays, Plus, CircleDot } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Command,
   CommandEmpty,
@@ -58,7 +54,9 @@ export function EventCombobox({ events = [], value, onChange, onCreate }) {
             <span className="flex min-w-0 flex-1 items-center gap-2">
               <CalendarDays className="h-4 w-4 shrink-0 text-emerald-600" />
               <span className="flex min-w-0 flex-col">
-                <span className="truncate text-sm font-medium text-foreground">{selected.title}</span>
+                <span className="truncate text-sm font-medium text-foreground">
+                  {selected.title}
+                </span>
                 <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
                   <span className="truncate">{selected.date}</span>
                   <span aria-hidden>·</span>
@@ -72,15 +70,10 @@ export function EventCombobox({ events = [], value, onChange, onCreate }) {
           <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent
-        className="w-[var(--radix-popover-trigger-width)] p-0"
-        align="start"
-      >
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
         {hasEvents ? (
           <Command
-            filter={(val, search) =>
-              val.toLowerCase().includes(search.toLowerCase()) ? 1 : 0
-            }
+            filter={(val, search) => (val.toLowerCase().includes(search.toLowerCase()) ? 1 : 0)}
           >
             <CommandInput placeholder="ຄົ້ນຫາກິດຈະກຳ..." className="text-sm" />
             <CommandList>
@@ -107,7 +100,9 @@ export function EventCombobox({ events = [], value, onChange, onCreate }) {
                       )}
                     />
                     <div className="flex min-w-0 flex-1 flex-col gap-1">
-                      <span className="truncate text-sm font-medium text-foreground">{ev.title}</span>
+                      <span className="truncate text-sm font-medium text-foreground">
+                        {ev.title}
+                      </span>
                       <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
                         <span className="inline-flex items-center gap-1">
                           <CalendarDays className="h-3 w-3" />

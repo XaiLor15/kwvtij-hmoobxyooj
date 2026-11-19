@@ -29,9 +29,18 @@ function fromRow(r) {
 
 function toRow(e) {
   const row = { ...e };
-  if ("colorA" in row) { row.color_a = row.colorA; delete row.colorA; }
-  if ("colorB" in row) { row.color_b = row.colorB; delete row.colorB; }
-  if ("expectedPerMember" in row) { row.expected_per_member = row.expectedPerMember; delete row.expectedPerMember; }
+  if ("colorA" in row) {
+    row.color_a = row.colorA;
+    delete row.colorA;
+  }
+  if ("colorB" in row) {
+    row.color_b = row.colorB;
+    delete row.colorB;
+  }
+  if ("expectedPerMember" in row) {
+    row.expected_per_member = row.expectedPerMember;
+    delete row.expectedPerMember;
+  }
   return row;
 }
 
@@ -40,13 +49,28 @@ let snapshot = [];
 const listeners = new Set();
 let initialized = false;
 
-function emit() { snapshot = events.slice(); for (const l of listeners) l(); }
-function subscribe(cb) { ensureInit(); listeners.add(cb); return () => listeners.delete(cb); }
-function getSnapshot() { return snapshot; }
+function emit() {
+  snapshot = events.slice();
+  for (const l of listeners) l();
+}
+function subscribe(cb) {
+  ensureInit();
+  listeners.add(cb);
+  return () => listeners.delete(cb);
+}
+function getSnapshot() {
+  return snapshot;
+}
 
 async function hydrate() {
-  const { data, error } = await supabase.from("events").select("*").order("id", { ascending: true });
-  if (error) { console.error("events hydrate", error); return; }
+  const { data, error } = await supabase
+    .from("events")
+    .select("*")
+    .order("id", { ascending: true });
+  if (error) {
+    console.error("events hydrate", error);
+    return;
+  }
   events = (data ?? []).map(fromRow);
   emit();
 }
@@ -55,7 +79,8 @@ function ensureInit() {
   if (initialized || typeof window === "undefined") return;
   initialized = true;
   hydrate();
-  supabase.channel("realtime:events")
+  supabase
+    .channel("realtime:events")
     .on("postgres_changes", { event: "*", schema: "public", table: "events" }, (payload) => {
       const { eventType, new: nr, old: or } = payload;
       if (eventType === "INSERT") {
@@ -80,9 +105,13 @@ export async function setEvents(next) {
 export async function updateEvent(id, patch) {
   events = events.map((e) => (e.id === id ? { ...e, ...patch } : e));
   emit();
-  const row = toRow(patch); delete row.id;
+  const row = toRow(patch);
+  delete row.id;
   const { error } = await supabase.from("events").update(row).eq("id", id);
-  if (error) { console.error("updateEvent", error); toast.error("ອັບເດດບໍ່ສຳເລັດ"); }
+  if (error) {
+    console.error("updateEvent", error);
+    toast.error("ອັບເດດບໍ່ສຳເລັດ");
+  }
 }
 
 export async function addEvent(data) {
@@ -105,9 +134,14 @@ export async function addEvent(data) {
     colorB: "#52b788",
     ...data,
   };
-  const row = toRow(merged); delete row.id;
+  const row = toRow(merged);
+  delete row.id;
   const { data: inserted, error } = await supabase.from("events").insert(row).select("*").single();
-  if (error) { console.error("addEvent", error); toast.error("ບັນທຶກບໍ່ສຳເລັດ"); return null; }
+  if (error) {
+    console.error("addEvent", error);
+    toast.error("ບັນທຶກບໍ່ສຳເລັດ");
+    return null;
+  }
   const obj = fromRow(inserted);
   if (!events.some((e) => e.id === obj.id)) events = [obj, ...events];
   emit();
@@ -118,11 +152,16 @@ export async function deleteEvent(id) {
   events = events.filter((e) => e.id !== id);
   emit();
   const { error } = await supabase.from("events").delete().eq("id", id);
-  if (error) { console.error("deleteEvent", error); toast.error("ລຶບບໍ່ສຳເລັດ"); }
+  if (error) {
+    console.error("deleteEvent", error);
+    toast.error("ລຶບບໍ່ສຳເລັດ");
+  }
 }
 
 export function useEvents() {
-  useEffect(() => { ensureInit(); }, []);
+  useEffect(() => {
+    ensureInit();
+  }, []);
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
 

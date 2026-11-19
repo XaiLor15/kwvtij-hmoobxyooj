@@ -9,9 +9,26 @@ import { readColumns, LEADERSHIP_PUBLIC_COLUMNS } from "@/lib/public-read";
 import { toast } from "sonner";
 
 const KNOWN = new Set([
-  "id","name","position","branch","phone","photo","bio","memberId","member_id",
-  "department","displayOrder","display_order","active","personType","person_type",
-  "createdAt","created_at","updatedAt","updated_at","data",
+  "id",
+  "name",
+  "position",
+  "branch",
+  "phone",
+  "photo",
+  "bio",
+  "memberId",
+  "member_id",
+  "department",
+  "displayOrder",
+  "display_order",
+  "active",
+  "personType",
+  "person_type",
+  "createdAt",
+  "created_at",
+  "updatedAt",
+  "updated_at",
+  "data",
 ]);
 
 function fromRow(r) {
@@ -69,9 +86,18 @@ let loading = true;
 let loadError = null;
 const listeners = new Set();
 let initialized = false;
-function emit() { snapshot = sortItems(items); for (const l of listeners) l(); }
-function subscribe(cb) { ensureInit(); listeners.add(cb); return () => listeners.delete(cb); }
-function getSnapshot() { return snapshot; }
+function emit() {
+  snapshot = sortItems(items);
+  for (const l of listeners) l();
+}
+function subscribe(cb) {
+  ensureInit();
+  listeners.add(cb);
+  return () => listeners.delete(cb);
+}
+function getSnapshot() {
+  return snapshot;
+}
 
 async function hydrate() {
   const { data, error } = await supabase
@@ -80,7 +106,12 @@ async function hydrate() {
     .order("display_order", { ascending: true })
     .order("id", { ascending: true });
   loading = false;
-  if (error) { loadError = error; console.error("leadership hydrate", error); emit(); return; }
+  if (error) {
+    loadError = error;
+    console.error("leadership hydrate", error);
+    emit();
+    return;
+  }
   loadError = null;
   items = (data ?? []).map(fromRow);
   emit();
@@ -90,7 +121,8 @@ function ensureInit() {
   if (initialized || typeof window === "undefined") return;
   initialized = true;
   hydrate();
-  supabase.channel("realtime:leadership")
+  supabase
+    .channel("realtime:leadership")
     .on("postgres_changes", { event: "*", schema: "public", table: "leadership" }, (payload) => {
       const { eventType, new: nr, old: or } = payload;
       if (eventType === "INSERT") {
@@ -102,14 +134,17 @@ function ensureInit() {
         items = items.filter((l) => l.id !== or.id);
       }
       emit();
-    }).subscribe();
+    })
+    .subscribe();
 }
 
 export function getLeadershipState() {
   return { loading, error: loadError };
 }
 
-export async function refreshLeaders() { await hydrate(); }
+export async function refreshLeaders() {
+  await hydrate();
+}
 
 export async function addLeader(item) {
   if (!assertPermission("create", "leadership")) return null;
@@ -119,8 +154,16 @@ export async function addLeader(item) {
       : items.reduce((max, l) => Math.max(max, l.displayOrder ?? 0), 0) + 1;
   const row = toRow({ ...item, displayOrder: nextOrder, active: item?.active !== false });
   delete row.id;
-  const { data: inserted, error } = await supabase.from("leadership").insert(row).select("*").single();
-  if (error) { console.error("addLeader", error); toast.error("ບັນທຶກບໍ່ສຳເລັດ: " + error.message); return null; }
+  const { data: inserted, error } = await supabase
+    .from("leadership")
+    .insert(row)
+    .select("*")
+    .single();
+  if (error) {
+    console.error("addLeader", error);
+    toast.error("ບັນທຶກບໍ່ສຳເລັດ: " + error.message);
+    return null;
+  }
   const obj = fromRow(inserted);
   if (!items.some((l) => l.id === obj.id)) items = [obj, ...items];
   emit();
@@ -139,7 +182,10 @@ export async function updateLeader(id, patch) {
   if (error) {
     console.error("updateLeader", error);
     toast.error("ອັບເດດບໍ່ສຳເລັດ: " + error.message);
-    if (prev) { items = items.map((l) => (l.id === id ? prev : l)); emit(); }
+    if (prev) {
+      items = items.map((l) => (l.id === id ? prev : l));
+      emit();
+    }
     return false;
   }
   return true;
@@ -162,13 +208,16 @@ export async function deleteLeader(id) {
   if (error) {
     console.error("deleteLeader", error);
     toast.error("ລຶບບໍ່ສຳເລັດ: " + error.message);
-    items = prev; emit();
+    items = prev;
+    emit();
     return false;
   }
   return true;
 }
 
 export function useLeaders() {
-  useEffect(() => { ensureInit(); }, []);
+  useEffect(() => {
+    ensureInit();
+  }, []);
   return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
