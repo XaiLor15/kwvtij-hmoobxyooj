@@ -66,7 +66,7 @@ export const Route = createFileRoute("/finance")({
   }),
   component: () => (
     <PageContainer className="space-y-5">
-      <PageHeader className="mb-0" title="ຄັງເງິນຕະກູນ" description="ລາຍຮັບ, ລາຍຈ່າຍ ແລະ ຍອດຄົງເຫຼືອ" />
+      <PageHeader title="ຄັງເງິນຕະກູນ" description="ລາຍຮັບ, ລາຍຈ່າຍ ແລະ ຍອດຄົງເຫຼືອ" />
       <RequireAuth what="ຂໍ້ມູນການເງິນ">
         <FinanceContent />
       </RequireAuth>

@@ -152,7 +152,6 @@ function ActivitiesPage() {
   return (
     <PageContainer className="space-y-5">
       <PageHeader
-        className="mb-0"
         title="ກິດຈະກຳຕະກູນ"
         description="ຈັດການງານ, ຜູ້ເຂົ້າຮ່ວມ, ຮູບພາບ ແລະ ການເງິນຂອງແຕ່ລະກິດຈະກຳ"
         actions={

@@ -58,7 +58,6 @@ export const Route = createFileRoute("/donation-tracking")({
   component: () => (
     <PageContainer className="space-y-5">
       <PageHeader
-        className="mb-0"
         title="ຕິດຕາມການບໍລິຈາກ"
         description="ຍອດທີ່ຕ້ອງຈ່າຍ ທຽບກັບຍອດທີ່ຈ່າຍແລ້ວ ຂອງຜູ້ເຂົ້າຮ່ວມກອງທຶນ ໃນແຕ່ລະກິດຈະກຳ"
       />

@@ -285,7 +285,6 @@ function MembersPage() {
   return (
     <PageContainer className="space-y-5">
       <PageHeader
-        className="mb-0"
         title="ສະມາຊິກຕະກູນ"
         description="ຄົ້ນຫາ, ຈັດການ ແລະ ເບິ່ງສາຍຕະກູນຂອງສະມາຊິກ"
         actions={

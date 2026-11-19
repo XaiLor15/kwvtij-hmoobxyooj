@@ -113,7 +113,6 @@ function NewsPage() {
   return (
     <PageContainer className="space-y-5">
       <PageHeader
-        className="mb-0"
         title="ຂ່າວສານ"
         description="ຂ່າວ, ປະກາດ ແລະ ກິດຈະກຳຂອງຕະກູນ"
         actions={

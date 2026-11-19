@@ -30,7 +30,7 @@ export function PageHeader({
   className?: string;
 }) {
   return (
-    <div className={cn("mb-6 flex flex-col gap-4", className)}>
+    <div className={cn("flex flex-col gap-4", className)}>
       {breadcrumbs && breadcrumbs.length > 0 && (
         <nav aria-label="breadcrumb">
           <ol className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
@@ -58,7 +58,7 @@ export function PageHeader({
         </nav>
       )}
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex items-start gap-3">
           {backButton && <div className="mt-1 shrink-0">{backButton}</div>}
           {icon && (

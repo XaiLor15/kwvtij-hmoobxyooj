@@ -113,7 +113,6 @@ function LeadershipPage() {
   return (
     <PageContainer className="space-y-5">
       <PageHeader
-        className="mb-0"
         title="ຄະນະນຳ"
         description="ຄະນະບໍລິຫານ ແລະ ທີ່ປຶກສາຕະກູນ — ລຳດັບນີ້ໃຊ້ສະແດງໃນໜ້າຫຼັກ"
         actions={
@@ -160,6 +159,7 @@ function LeadershipPage() {
             <Button
               variant={showHidden ? "secondary" : "ghost"}
               size="sm"
+              className="self-start lg:self-auto"
               onClick={() => setShowHidden((v) => !v)}
             >
               {showHidden ? "ເຊື່ອງລາຍການທີ່ປິດ" : "ສະແດງລາຍການທີ່ປິດ"}

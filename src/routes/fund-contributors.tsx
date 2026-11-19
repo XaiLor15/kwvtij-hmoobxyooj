@@ -33,7 +33,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SearchableMemberSelect } from "@/components/searchable-member-select";
-import { useMembers, type Member } from "@/lib/members-data";
+import { getMemberById, useMembers, type Member } from "@/lib/members-data";
 import { useTransactions } from "@/lib/treasury-store";
 import {
   addFundMember,
@@ -59,7 +59,6 @@ export const Route = createFileRoute("/fund-contributors")({
   component: () => (
     <PageContainer className="space-y-5">
       <PageHeader
-        className="mb-0"
         title="ຜູ້ເຂົ້າຮ່ວມກອງທຶນ"
         description="ສະມາຊິກທີ່ເຂົ້າຮ່ວມກອງທຶນ — ຍອດເງິນຄຳນວນຈາກລາຍຮັບໃນໜ້າການເງິນ"
       />
@@ -450,7 +449,11 @@ function FundMemberDialog({
         <Field label="ສະມາຊິກ" required className="sm:col-span-2">
           {(id) =>
             fm ? (
-              <Input id={id} value={`#${fm.memberId}`} disabled />
+              <Input
+                id={id}
+                value={getMemberById(fm.memberId)?.name ?? `#${fm.memberId}`}
+                disabled
+              />
             ) : (
               <SearchableMemberSelect
                 id={id}

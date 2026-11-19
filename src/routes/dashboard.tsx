@@ -176,7 +176,6 @@ function DashboardPage() {
   return (
     <PageContainer className="space-y-5">
       <PageHeader
-        className="mb-0"
         title="Kwv Tij Hmoob Xyooj"
         description={`ພາບລວມຂໍ້ມູນຕະກູນ · ${formatDateLao(now.toISOString().slice(0, 10))}`}
         actions={quickActions.map((a) => (

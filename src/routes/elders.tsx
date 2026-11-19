@@ -115,7 +115,6 @@ function EldersPage() {
   return (
     <PageContainer className="space-y-5">
       <PageHeader
-        className="mb-0"
         title="ຜູ້ອາວຸໂສ"
         description="ຜູ້ໃຫຍ່ ແລະ ຜູ້ມີບົດບາດສຳຄັນໃນຕະກູນ — ລຳດັບນີ້ໃຊ້ສະແດງໃນໜ້າຫຼັກ"
         actions={
@@ -162,6 +161,7 @@ function EldersPage() {
             <Button
               variant={showHidden ? "secondary" : "ghost"}
               size="sm"
+              className="self-start lg:self-auto"
               onClick={() => setShowHidden((v) => !v)}
             >
               {showHidden ? "ເຊື່ອງລາຍການທີ່ປິດ" : "ສະແດງລາຍການທີ່ປິດ"}
