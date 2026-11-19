@@ -1,12 +1,11 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useState } from "react";
-import { useAuth } from "@/lib/permissions";
+import { useEffect, useState, type FormEvent } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { Loader2, LogIn, TreePine, UserPlus } from "lucide-react";
+import { toast } from "sonner";
+import { Field, Segmented } from "@/components/enterprise";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LogIn, ShieldCheck, UserPlus } from "lucide-react";
-import { toast } from "sonner";
+import { useAuth } from "@/lib/auth-context";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -18,163 +17,165 @@ export const Route = createFileRoute("/login")({
   component: LoginPage,
 });
 
+type Mode = "signin" | "signup";
+
 function LoginPage() {
   const { login, signup, loginWithGoogle, session } = useAuth();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [name, setName] = useState("");
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
-  async function onSubmit(e: React.FormEvent) {
+  // Already signed in (or just signed in) → go to the dashboard.
+  useEffect(() => {
+    if (session.ready && session.role !== "guest") navigate({ to: "/dashboard", replace: true });
+  }, [session.ready, session.role, navigate]);
+
+  async function onSubmit(e: FormEvent) {
     e.preventDefault();
-    setLoading(true);
+    setError(null);
+    setNotice(null);
+    if (!/^\S+@\S+\.\S+$/.test(email.trim())) return setError("ອີເມວບໍ່ຖືກຕ້ອງ");
+    if (password.length < 6) return setError("ລະຫັດຜ່ານຕ້ອງມີຢ່າງໜ້ອຍ 6 ຕົວອັກສອນ");
+    setPending(true);
     const res =
       mode === "signin"
         ? await login(email, password)
-        : await signup(email, password, displayName || undefined);
-    setLoading(false);
-    if (res.ok) {
-      if (mode === "signup") {
-        toast.success("ສະໝັກສຳເລັດ! ກະລຸນາກວດອີເມວເພື່ອຢືນຢັນ (ຖ້າຮ້ອງຂໍ)");
-      } else {
-        toast.success("ເຂົ້າລະບົບສຳເລັດ");
-      }
-      navigate({ to: "/dashboard" });
+        : await signup(email, password, name || undefined);
+    setPending(false);
+    if (!res.ok) return setError(res.error);
+    if (mode === "signup") {
+      setNotice("ສະໝັກສຳເລັດ! ກະລຸນາກວດອີເມວເພື່ອຢືນຢັນບັນຊີ ແລ້ວຈຶ່ງເຂົ້າລະບົບ.");
+      setMode("signin");
     } else {
-      toast.error(res.error ?? "ດຳເນີນການບໍ່ສຳເລັດ");
+      toast.success("ເຂົ້າລະບົບສຳເລັດ");
     }
   }
 
   async function onGoogle() {
-    setLoading(true);
+    setError(null);
+    setPending(true);
     const res = await loginWithGoogle();
-    setLoading(false);
-    if (!res.ok) toast.error(res.error ?? "Google sign-in failed");
+    setPending(false);
+    if (!res.ok) setError(res.error);
   }
 
   return (
-    <div className="flex min-h-[calc(100vh-56px)] items-center justify-center p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary mb-2">
-            <ShieldCheck className="h-6 w-6" />
-          </div>
-          <CardTitle className="text-xl">
-            {mode === "signin" ? "ເຂົ້າລະບົບສະມາຊິກ" : "ສະໝັກສະມາຊິກໃໝ່"}
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">ຜູ້ຢ້ຽມຊົມສາມາດເບິ່ງຂໍ້ມູນທັງໝົດ ໂດຍບໍ່ຕ້ອງເຂົ້າລະບົບ</p>
-        </CardHeader>
-        <CardContent>
-          {session.role !== "guest" ? (
-            <div className="text-sm text-center">
-              ທ່ານໄດ້ເຂົ້າລະບົບແລ້ວ ({session.email})
-              <div className="mt-4">
-                <Link to="/dashboard">
-                  <Button className="w-full">ໄປໜ້າຫຼັກ</Button>
-                </Link>
-              </div>
-            </div>
-          ) : (
-            <>
-              <form onSubmit={onSubmit} className="space-y-4">
-                {mode === "signup" && (
-                  <div className="space-y-2">
-                    <Label htmlFor="displayName">ຊື່ສະແດງ</Label>
-                    <Input
-                      id="displayName"
-                      value={displayName}
-                      onChange={(e) => setDisplayName(e.target.value)}
-                      placeholder="ຊື່ຂອງທ່ານ"
-                    />
-                  </div>
-                )}
-                <div className="space-y-2">
-                  <Label htmlFor="email">ອີເມວ</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password">ລະຫັດຜ່ານ</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    required
-                    minLength={6}
-                  />
-                </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {mode === "signin" ? (
-                    <>
-                      <LogIn className="h-4 w-4 mr-2" />
-                      {loading ? "ກຳລັງເຂົ້າ..." : "ເຂົ້າລະບົບ"}
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      {loading ? "ກຳລັງສະໝັກ..." : "ສະໝັກໃໝ່"}
-                    </>
-                  )}
-                </Button>
-              </form>
+    <div className="flex min-h-[calc(100dvh-3.5rem)] items-center justify-center px-4 py-10">
+      <div className="w-full max-w-sm space-y-6">
+        <div className="space-y-2 text-center">
+          <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+            <TreePine className="h-5 w-5" />
+          </span>
+          <h1 className="text-xl font-semibold">Kwv Tij Hmoob Xyooj</h1>
+          <p className="text-sm text-muted-foreground">ເຂົ້າລະບົບເພື່ອຈັດການຂໍ້ມູນຕະກູນ ແລະ ເບິ່ງການເງິນ</p>
+        </div>
 
-              <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
-                <div className="flex-1 h-px bg-border" />
-                ຫຼື
-                <div className="flex-1 h-px bg-border" />
-              </div>
-
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full"
-                onClick={onGoogle}
-                disabled={loading}
-              >
-                ເຂົ້າລະບົບດ້ວຍ Google
-              </Button>
-
-              <div className="text-center pt-4 text-sm">
-                {mode === "signin" ? (
-                  <button
-                    type="button"
-                    onClick={() => setMode("signup")}
-                    className="text-primary hover:underline"
-                  >
-                    ຍັງບໍ່ມີບັນຊີ? ສະໝັກໃໝ່
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setMode("signin")}
-                    className="text-primary hover:underline"
-                  >
-                    ມີບັນຊີແລ້ວ? ເຂົ້າລະບົບ
-                  </button>
-                )}
-              </div>
-              <div className="text-center pt-2">
-                <Link
-                  to="/dashboard"
-                  className="text-xs text-muted-foreground hover:text-foreground underline"
-                >
-                  ສືບຕໍ່ໃນຖານະຜູ້ຢ້ຽມຊົມ
-                </Link>
-              </div>
-            </>
+        <div className="space-y-4 rounded-xl border border-border bg-card p-5 shadow-xs">
+          <Segmented<Mode>
+            ariaLabel="ເຂົ້າລະບົບ ຫຼື ສະໝັກ"
+            value={mode}
+            onChange={(m) => {
+              setMode(m);
+              setError(null);
+            }}
+            className="[&>button]:flex-1"
+            options={[
+              { value: "signin", label: "ເຂົ້າລະບົບ" },
+              { value: "signup", label: "ສະໝັກໃໝ່" },
+            ]}
+          />
+          {notice && (
+            <p
+              role="status"
+              className="rounded-md bg-success-subtle px-3 py-2 text-sm text-success"
+            >
+              {notice}
+            </p>
           )}
-        </CardContent>
-      </Card>
+          {error && (
+            <p
+              role="alert"
+              className="rounded-md bg-destructive-subtle px-3 py-2 text-sm text-destructive"
+            >
+              {error}
+            </p>
+          )}
+          <form onSubmit={onSubmit} className="space-y-4" noValidate>
+            {mode === "signup" && (
+              <Field label="ຊື່ສະແດງ">
+                {(id) => (
+                  <Input
+                    id={id}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    autoComplete="name"
+                  />
+                )}
+              </Field>
+            )}
+            <Field label="ອີເມວ" required>
+              {(id) => (
+                <Input
+                  id={id}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                />
+              )}
+            </Field>
+            <Field
+              label="ລະຫັດຜ່ານ"
+              required
+              hint={mode === "signup" ? "ຢ່າງໜ້ອຍ 6 ຕົວອັກສອນ" : undefined}
+            >
+              {(id) => (
+                <Input
+                  id={id}
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                />
+              )}
+            </Field>
+            <Button type="submit" className="w-full" disabled={pending}>
+              {pending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : mode === "signin" ? (
+                <LogIn className="h-4 w-4" />
+              ) : (
+                <UserPlus className="h-4 w-4" />
+              )}
+              {mode === "signin" ? "ເຂົ້າລະບົບ" : "ສະໝັກ"}
+            </Button>
+          </form>
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="h-px flex-1 bg-border" /> ຫຼື <span className="h-px flex-1 bg-border" />
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={onGoogle}
+            disabled={pending}
+          >
+            ເຂົ້າລະບົບດ້ວຍ Google
+          </Button>
+        </div>
+
+        <p className="text-center text-xs text-muted-foreground">
+          <Link to="/dashboard" className="hover:text-foreground hover:underline">
+            ສືບຕໍ່ໃນຖານະຜູ້ຢ້ຽມຊົມ (ເບິ່ງໄດ້ຢ່າງດຽວ)
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

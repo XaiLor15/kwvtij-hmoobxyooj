@@ -1,5 +1,5 @@
-import { useMemo, useState, type ReactNode } from "react";
-import { ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Table,
@@ -16,18 +16,18 @@ import { LoadingState } from "./loading-state";
 export interface Column<T> {
   key: string;
   header: ReactNode;
-  /** Render cell content. */
   cell: (row: T) => ReactNode;
-  /** Optional accessor for sorting. Return string | number. */
+  /** Enables sorting by this column. */
   sortValue?: (row: T) => string | number;
   className?: string;
   align?: "left" | "right" | "center";
+  /** Hide below the `lg` breakpoint (desktop table only). */
+  hideBelowLg?: boolean;
 }
 
 /**
- * DataTable — a generic, accessible, sortable + paginated table used across
- * modules. Handles loading and empty states, sticky header and responsive
- * horizontal scroll. Presentation only — data is passed in.
+ * DataTable — sortable, paginated table. On phones it renders `mobileCard`
+ * for each row (when given) instead of a horizontally scrolling table.
  */
 export function DataTable<T>({
   columns,
@@ -35,96 +35,136 @@ export function DataTable<T>({
   getRowKey,
   onRowClick,
   loading = false,
-  pageSize = 10,
+  pageSize = 15,
   emptyTitle = "ບໍ່ມີຂໍ້ມູນ",
   emptyDescription,
   emptyIcon,
+  emptyAction,
+  mobileCard,
+  initialSort,
   className,
 }: {
   columns: Column<T>[];
   rows: T[];
-  getRowKey: (row: T, index: number) => string | number;
+  getRowKey: (row: T) => string | number;
   onRowClick?: (row: T) => void;
   loading?: boolean;
   pageSize?: number;
   emptyTitle?: string;
   emptyDescription?: string;
   emptyIcon?: ReactNode;
+  emptyAction?: ReactNode;
+  mobileCard?: (row: T) => ReactNode;
+  initialSort?: { key: string; dir: "asc" | "desc" };
   className?: string;
 }) {
-  const [sortKey, setSortKey] = useState<string | null>(null);
-  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const [sortKey, setSortKey] = useState<string | null>(initialSort?.key ?? null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">(initialSort?.dir ?? "asc");
   const [page, setPage] = useState(0);
 
+  // Back to page 1 whenever the filtered row set changes size.
+  useEffect(() => setPage(0), [rows.length]);
+
   const sorted = useMemo(() => {
-    if (!sortKey) return rows;
-    const col = columns.find((c) => c.key === sortKey);
+    const col = sortKey ? columns.find((c) => c.key === sortKey) : null;
     if (!col?.sortValue) return rows;
-    const copy = [...rows];
-    copy.sort((a, b) => {
-      const av = col.sortValue!(a);
-      const bv = col.sortValue!(b);
-      if (av < bv) return sortDir === "asc" ? -1 : 1;
-      if (av > bv) return sortDir === "asc" ? 1 : -1;
-      return 0;
+    const get = col.sortValue;
+    return [...rows].sort((a, b) => {
+      const av = get(a);
+      const bv = get(b);
+      const cmp =
+        typeof av === "number" && typeof bv === "number"
+          ? av - bv
+          : String(av).localeCompare(String(bv));
+      return sortDir === "asc" ? cmp : -cmp;
     });
-    return copy;
   }, [rows, sortKey, sortDir, columns]);
 
   const pageCount = Math.max(1, Math.ceil(sorted.length / pageSize));
   const current = Math.min(page, pageCount - 1);
   const pageRows = sorted.slice(current * pageSize, current * pageSize + pageSize);
 
+  if (loading) return <LoadingState variant="table" className={cn("p-4", className)} />;
+  if (rows.length === 0)
+    return (
+      <EmptyState
+        icon={emptyIcon}
+        title={emptyTitle}
+        description={emptyDescription}
+        action={emptyAction}
+        className={cn("m-4", className)}
+      />
+    );
+
   const toggleSort = (key: string) => {
-    if (sortKey === key) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
+    if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else {
       setSortKey(key);
       setSortDir("asc");
     }
   };
 
-  if (loading) return <LoadingState variant="table" rows={pageSize} className={className} />;
-  if (rows.length === 0) {
-    return (
-      <EmptyState
-        title={emptyTitle}
-        description={emptyDescription}
-        icon={emptyIcon}
-        className={className}
-      />
-    );
-  }
+  const align = (c: Column<T>) =>
+    cn(c.align === "right" && "text-right", c.align === "center" && "text-center");
 
   return (
-    <div className={cn("w-full", className)}>
-      <div className="overflow-x-auto rounded-lg border border-border">
+    <div className={className}>
+      {mobileCard && (
+        <ul className="divide-y divide-border md:hidden">
+          {pageRows.map((row) => (
+            <li key={getRowKey(row)}>
+              {onRowClick ? (
+                <button
+                  type="button"
+                  onClick={() => onRowClick(row)}
+                  className="w-full px-4 py-3 text-left transition-colors hover:bg-muted/50"
+                >
+                  {mobileCard(row)}
+                </button>
+              ) : (
+                <div className="px-4 py-3">{mobileCard(row)}</div>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+      <div className={cn("overflow-x-auto", mobileCard && "hidden md:block")}>
         <Table>
-          <TableHeader className="sticky top-0 z-10 bg-muted/60 backdrop-blur">
-            <TableRow>
+          <TableHeader>
+            <TableRow className="bg-muted/40 hover:bg-muted/40">
               {columns.map((col) => (
                 <TableHead
                   key={col.key}
                   className={cn(
-                    col.align === "right" && "text-right",
-                    col.align === "center" && "text-center",
+                    "h-10 whitespace-nowrap text-xs font-semibold",
+                    align(col),
+                    col.hideBelowLg && "hidden lg:table-cell",
                     col.className,
                   )}
+                  aria-sort={
+                    sortKey === col.key
+                      ? sortDir === "asc"
+                        ? "ascending"
+                        : "descending"
+                      : undefined
+                  }
                 >
                   {col.sortValue ? (
                     <button
                       type="button"
                       onClick={() => toggleSort(col.key)}
-                      className="inline-flex items-center gap-1 font-medium transition-colors hover:text-foreground"
-                      aria-label={`ຈັດຮຽງຕາມ ${typeof col.header === "string" ? col.header : col.key}`}
+                      className="inline-flex items-center gap-1 transition-colors hover:text-foreground"
                     >
                       {col.header}
-                      <ArrowUpDown
-                        className={cn(
-                          "h-3.5 w-3.5",
-                          sortKey === col.key ? "text-foreground" : "opacity-50",
-                        )}
-                      />
+                      {sortKey === col.key ? (
+                        sortDir === "asc" ? (
+                          <ArrowUp className="h-3.5 w-3.5" aria-hidden />
+                        ) : (
+                          <ArrowDown className="h-3.5 w-3.5" aria-hidden />
+                        )
+                      ) : (
+                        <ArrowUpDown className="h-3.5 w-3.5 opacity-40" aria-hidden />
+                      )}
                     </button>
                   ) : (
                     col.header
@@ -134,9 +174,9 @@ export function DataTable<T>({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {pageRows.map((row, i) => (
+            {pageRows.map((row) => (
               <TableRow
-                key={getRowKey(row, i)}
+                key={getRowKey(row)}
                 onClick={onRowClick ? () => onRowClick(row) : undefined}
                 className={cn(onRowClick && "cursor-pointer")}
               >
@@ -144,8 +184,9 @@ export function DataTable<T>({
                   <TableCell
                     key={col.key}
                     className={cn(
-                      col.align === "right" && "text-right",
-                      col.align === "center" && "text-center",
+                      "py-2.5",
+                      align(col),
+                      col.hideBelowLg && "hidden lg:table-cell",
                       col.className,
                     )}
                   >
@@ -159,9 +200,9 @@ export function DataTable<T>({
       </div>
 
       {pageCount > 1 && (
-        <div className="mt-3 flex items-center justify-between text-sm text-muted-foreground">
-          <span>
-            {current * pageSize + 1}–{Math.min((current + 1) * pageSize, sorted.length)} /{" "}
+        <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-2.5 text-xs text-muted-foreground">
+          <span className="tabular-nums">
+            {current * pageSize + 1}–{Math.min((current + 1) * pageSize, sorted.length)} ຈາກ{" "}
             {sorted.length}
           </span>
           <div className="flex items-center gap-1">
@@ -170,7 +211,7 @@ export function DataTable<T>({
               size="icon"
               className="h-8 w-8"
               disabled={current === 0}
-              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              onClick={() => setPage(current - 1)}
               aria-label="ໜ້າກ່ອນ"
             >
               <ChevronLeft className="h-4 w-4" />
@@ -183,7 +224,7 @@ export function DataTable<T>({
               size="icon"
               className="h-8 w-8"
               disabled={current >= pageCount - 1}
-              onClick={() => setPage((p) => Math.min(pageCount - 1, p + 1))}
+              onClick={() => setPage(current + 1)}
               aria-label="ໜ້າຖັດໄປ"
             >
               <ChevronRight className="h-4 w-4" />

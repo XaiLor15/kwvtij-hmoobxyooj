@@ -14,7 +14,6 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { AppShell } from "../components/app-shell";
 import { Toaster } from "../components/ui/sonner";
 import { MediaLightboxProvider } from "../components/media-lightbox";
-import { initData } from "../lib/init-data";
 import { AuthProvider } from "../lib/permissions";
 
 function NotFoundComponent() {
@@ -127,10 +126,6 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
-
-  useEffect(() => {
-    initData();
-  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

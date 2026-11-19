@@ -1,567 +1,445 @@
-// @ts-nocheck
-import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
-  Search,
-  CheckCircle2,
-  Clock,
   AlertCircle,
-  Calendar,
+  CalendarDays,
+  CheckCircle2,
   Download,
-  Printer,
-  Filter,
-  TrendingUp,
-  Users,
-  Wallet,
   Percent,
-  Banknote,
+  Scale,
+  Search,
+  Wallet,
 } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import {
+  CheckboxField,
+  DataTable,
+  EmptyState,
+  NativeSelect,
   PageContainer,
   PageHeader,
-  StatCard,
+  RequireAuth,
   SectionCard,
+  Segmented,
+  StatCard,
   StatusBadge,
-  EmptyState,
+  type Column,
 } from "@/components/enterprise";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
 import { useMembers } from "@/lib/members-data";
 import { useTransactions } from "@/lib/treasury-store";
 import { useEvents } from "@/lib/events-store";
 import { useFundMembers } from "@/lib/fund-members-store";
-import { activityParticipantStats, STATUS_META } from "@/lib/fund-finance";
+import {
+  PAYMENT_STATUS_META,
+  activityStats,
+  type ActivityStats,
+  type ParticipantRow,
+  type PaymentStatus,
+} from "@/lib/domain/fund";
+import { formatDateLao, formatKip } from "@/lib/domain/format";
+import { downloadCSV } from "@/lib/download";
+import { matchesSearchTokens } from "@/lib/utils";
+import { optionalNumber } from "@/lib/search-params";
 
 export const Route = createFileRoute("/donation-tracking")({
+  validateSearch: (s: Record<string, unknown>): { event?: number; member?: number } => ({
+    event: optionalNumber(s.event),
+    member: optionalNumber(s.member),
+  }),
   head: () => ({
     meta: [
       { title: "ຕິດຕາມການບໍລິຈາກ — ລະບົບຄຸ້ມຄອງຕະກູນ" },
-      { name: "description", content: "ຕິດຕາມສະຖານະຈ່າຍແລ້ວ / ຍັງບໍ່ຈ່າຍ / ຄ້າງຈ່າຍ ຂອງທຸກກິດຈະກຳ" },
+      { name: "description", content: "ສະຖານະການຈ່າຍຂອງຜູ້ເຂົ້າຮ່ວມກອງທຶນໃນແຕ່ລະກິດຈະກຳ" },
     ],
   }),
-  component: DonationTrackingPage,
+  component: () => (
+    <PageContainer className="space-y-5">
+      <PageHeader
+        className="mb-0"
+        title="ຕິດຕາມການບໍລິຈາກ"
+        description="ຍອດທີ່ຕ້ອງຈ່າຍ ທຽບກັບຍອດທີ່ຈ່າຍແລ້ວ ຂອງຜູ້ເຂົ້າຮ່ວມກອງທຶນ ໃນແຕ່ລະກິດຈະກຳ"
+      />
+      <RequireAuth what="ຂໍ້ມູນການບໍລິຈາກ">
+        <TrackingContent />
+      </RequireAuth>
+    </PageContainer>
+  ),
 });
 
-const ALL = "__ALL__";
-const fmt = (n) => new Intl.NumberFormat("lo-LA").format(n || 0) + " ₭";
+type View = "activity" | "member";
+const STATUS_FILTERS: (PaymentStatus | "all")[] = ["all", "paid", "partial", "pending", "overdue"];
 
-// Map the store's colour keys onto the shared design-system tones.
-const TONE_BY_COLOR = {
-  emerald: "success",
-  amber: "warning",
-  rose: "destructive",
-  slate: "neutral",
-};
+interface FlatRow extends ParticipantRow {
+  stats: ActivityStats;
+}
 
-function DonationStatus({ status }) {
-  const s = STATUS_META[status] || STATUS_META.pending;
-  const Icon = status === "paid" ? CheckCircle2 : status === "overdue" ? AlertCircle : Clock;
+function Status({ s }: { s: PaymentStatus }) {
+  const meta = PAYMENT_STATUS_META[s];
   return (
-    <StatusBadge tone={TONE_BY_COLOR[s.color] || "neutral"}>
-      <Icon className="h-3 w-3" /> {s.label}
+    <StatusBadge tone={meta.tone} dot>
+      {meta.label}
     </StatusBadge>
   );
 }
 
-function exportCSV(filename, rows) {
-  if (!rows.length) return;
-  const headers = Object.keys(rows[0]);
-  const csv = [
-    headers.join(","),
-    ...rows.map((r) => headers.map((h) => `"${String(r[h] ?? "").replace(/"/g, '""')}"`).join(",")),
-  ].join("\n");
-  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-function DonationTrackingPage() {
+function TrackingContent() {
   const members = useMembers();
-  const transactions = useTransactions();
+  const txns = useTransactions();
   const events = useEvents();
   const fundMembers = useFundMembers();
+  const params = Route.useSearch();
+  const navigate = useNavigate({ from: "/donation-tracking" });
 
+  const [view, setView] = useState<View>(params.member != null ? "member" : "activity");
+  const [statusFilter, setStatusFilter] = useState<PaymentStatus | "all">("all");
   const [search, setSearch] = useState("");
-  const [eventId, setEventId] = useState(ALL);
-  const [statusFilter, setStatusFilter] = useState(ALL);
-  const [tab, setTab] = useState("byActivity");
+  const [respectJoin, setRespectJoin] = useState(true);
+  const eventId = params.event;
 
-  const activeFund = useMemo(() => fundMembers.filter((f) => f.status === "active"), [fundMembers]);
   const membersById = useMemo(() => new Map(members.map((m) => [m.id, m])), [members]);
+  const trackedEvents = useMemo(
+    () => events.filter((e) => eventId == null || e.id === eventId),
+    [events, eventId],
+  );
 
-  const activityViews = useMemo(() => {
-    const list =
-      eventId === ALL ? events : events.filter((e) => e.id === Number(eventId) || e.id === eventId);
-    return list.map((ev) => ({
-      event: ev,
-      ...activityParticipantStats({
-        event: ev,
-        activeFundMembers: activeFund,
-        membersById,
-        transactions,
-        ignoreJoinDate: true,
-      }),
-    }));
-  }, [events, eventId, activeFund, membersById, transactions]);
+  const stats = useMemo(
+    () =>
+      trackedEvents.map((event) =>
+        activityStats({
+          event,
+          fundMembers,
+          membersById,
+          transactions: txns,
+          respectJoinDate: respectJoin,
+        }),
+      ),
+    [trackedEvents, fundMembers, membersById, txns, respectJoin],
+  );
 
   const totals = useMemo(() => {
-    let paid = 0,
-      pending = 0,
-      overdue = 0,
-      collected = 0,
-      expected = 0,
-      perMemberSum = 0;
-    for (const v of activityViews) {
-      paid += v.paid;
-      pending += v.pending;
-      overdue += v.overdue;
-      collected += v.collected;
-      // ຄາດຫວັງ = ຈຳນວນສະມາຊິກກອງທຶນ × ຈຳນວນເງິນຕໍ່ຄົນ (ຄຳນວນອັດຕະໂນມັດ)
-      expected += activeFund.length * (v.perMember || 0);
-      perMemberSum += v.perMember || 0;
+    const t = { expected: 0, collected: 0, financeIncome: 0, unattributed: 0, paid: 0, due: 0 };
+    for (const s of stats) {
+      t.expected += s.expectedTotal;
+      t.collected += s.collected;
+      t.financeIncome += s.financeIncome;
+      t.unattributed += s.unattributed;
+      t.paid += s.counts.paid;
+      t.due += s.counts.paid + s.counts.partial + s.counts.pending + s.counts.overdue;
     }
-    const totalRows = paid + pending + overdue;
-    return {
-      paid,
-      pending,
-      overdue,
-      collected,
-      expected,
-      perMemberSum,
-      totalRows,
-      remaining: Math.max(0, expected - collected),
-      progress: expected > 0 ? Math.round((collected / expected) * 100) : 0,
-      rate: totalRows ? Math.round((paid / totalRows) * 100) : 0,
-    };
-  }, [activityViews, activeFund.length]);
+    return { ...t, remaining: Math.max(0, t.expected - t.collected) };
+  }, [stats]);
 
-  // Flatten for byMember table
-  const memberRows = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    const out = [];
-    for (const v of activityViews) {
-      for (const row of v.rows) {
-        if (statusFilter !== ALL && row.status !== statusFilter) continue;
-        if (q) {
-          const hay = [row.member.name, row.member.nickname]
-            .filter(Boolean)
-            .join(" ")
-            .toLowerCase();
-          if (!hay.includes(q)) continue;
-        }
-        out.push({
-          eventId: v.event.id,
-          eventTitle: v.event.title,
-          eventDate: v.event.date,
-          member: row.member,
-          donation: row.donation,
-          status: row.status,
-          expected: row.expected,
-        });
-      }
-    }
-    return out;
-  }, [activityViews, search, statusFilter]);
+  const rowMatches = (r: ParticipantRow) =>
+    (statusFilter === "all" ? r.status !== "none" : r.status === statusFilter) &&
+    (params.member == null || r.member.id === params.member) &&
+    matchesSearchTokens(search, r.member.name, r.member.nickname);
 
-  const doExport = () => {
-    exportCSV(
-      "donation-tracking.csv",
-      memberRows.map((r) => ({
-        ກິດຈະກຳ: r.eventTitle,
-        ວັນທີ: r.eventDate,
+  const flat: FlatRow[] = useMemo(
+    () => stats.flatMap((s) => s.rows.filter(rowMatches).map((r) => ({ ...r, stats: s }))),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [stats, statusFilter, search, params.member],
+  );
+
+  const setEvent = (v: string) =>
+    navigate({ search: (p) => ({ ...p, event: v === "all" ? undefined : Number(v) }) });
+  const filteredMember = params.member != null ? membersById.get(params.member) : undefined;
+
+  const exportCsv = () =>
+    downloadCSV(
+      "donation-tracking",
+      flat.map((r) => ({
+        ກິດຈະກຳ: r.stats.event.title,
+        ວັນທີກິດຈະກຳ: r.stats.event.date,
         ຊື່: r.member.name,
-        ຊື່ຫຍໍ້: r.member.nickname || "",
-        ຈຳນວນຄາດຫວັງ: r.expected,
-        ຈຳນວນຈ່າຍ: r.donation?.amount || 0,
-        ວັນຈ່າຍ: r.donation?.date || "",
-        ຈ່າຍຜ່ານ: r.donation?.method || "",
-        ໃບຮັບ: r.donation?.receiptNo || r.donation?.id || "",
-        ສະຖານະ: STATUS_META[r.status]?.label,
+        ຕ້ອງຈ່າຍ: r.expected,
+        ຈ່າຍແລ້ວ: r.paid,
+        ຍັງຂາດ: Math.max(0, r.expected - r.paid),
+        ຈ່າຍຫຼ້າສຸດ: r.lastPaymentDate,
+        ສະຖານະ: PAYMENT_STATUS_META[r.status].label,
       })),
-    );
-  };
+    ) || toast.error("ບໍ່ມີຂໍ້ມູນໃຫ້ສົ່ງອອກ");
+
+  const columns: Column<FlatRow>[] = [
+    {
+      key: "member",
+      header: "ສະມາຊິກ",
+      sortValue: (r) => r.member.name,
+      cell: (r) => (
+        <Link
+          to="/members"
+          search={{ member: r.member.id }}
+          className="font-medium hover:text-primary hover:underline"
+        >
+          {r.member.name}
+        </Link>
+      ),
+    },
+    ...(view === "member"
+      ? [
+          {
+            key: "event",
+            header: "ກິດຈະກຳ",
+            sortValue: (r: FlatRow) => r.stats.event.date,
+            cell: (r: FlatRow) => (
+              <span className="text-sm">
+                {r.stats.event.title}
+                <span className="block text-xs text-muted-foreground">
+                  {formatDateLao(r.stats.event.date)}
+                </span>
+              </span>
+            ),
+          } satisfies Column<FlatRow>,
+        ]
+      : []),
+    {
+      key: "expected",
+      header: "ຕ້ອງຈ່າຍ",
+      align: "right",
+      cell: (r) => <span className="tabular-nums">{formatKip(r.expected)}</span>,
+    },
+    {
+      key: "paid",
+      header: "ຈ່າຍແລ້ວ",
+      align: "right",
+      sortValue: (r) => r.paid,
+      cell: (r) => (
+        <span className="tabular-nums">
+          <span className="font-medium">{formatKip(r.paid)}</span>
+          {r.payments.length > 1 && (
+            <span className="block text-[11px] text-muted-foreground">{r.payments.length} ງວດ</span>
+          )}
+        </span>
+      ),
+    },
+    { key: "last", header: "ວັນຈ່າຍ", hideBelowLg: true, cell: (r) => r.lastPaymentDate || "—" },
+    {
+      key: "status",
+      header: "ສະຖານະ",
+      sortValue: (r) => r.status,
+      cell: (r) => <Status s={r.status} />,
+    },
+  ];
+
+  const mobileCard = (r: FlatRow) => (
+    <div className="flex items-center gap-3">
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-medium">{r.member.name}</div>
+        <div className="truncate text-xs text-muted-foreground">
+          {view === "member" ? `${r.stats.event.title} · ` : ""}
+          {formatKip(r.paid)} / {formatKip(r.expected)}
+        </div>
+      </div>
+      <Status s={r.status} />
+    </div>
+  );
+
+  const progress =
+    totals.expected > 0 ? Math.min(100, Math.round((totals.collected / totals.expected) * 100)) : 0;
 
   return (
-    <PageContainer className="space-y-4">
-      <PageHeader
-        icon={<TrendingUp className="h-5 w-5" />}
-        title="ຕິດຕາມການບໍລິຈາກ"
-        description="Dashboard ຕິດຕາມສະຖານະການຈ່າຍຂອງຜູ້ເຂົ້າຮ່ວມກອງທຶນທຸກກິດຈະກຳ (Real-time)"
-
-        actions={
-          <>
-            <Button variant="outline" size="sm" onClick={doExport}>
-              <Download className="h-4 w-4 mr-1" /> Export CSV
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => window.print()}>
-              <Printer className="h-4 w-4 mr-1" /> Print
-            </Button>
-          </>
-        }
-      />
-
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        <StatCard
-          icon={<Users className="h-4 w-4" />}
-          label="ສະມາຊິກກອງທຶນ"
-          value={`${activeFund.length} ຄົນ`}
-        />
-        <StatCard
-          icon={<Banknote className="h-4 w-4" />}
-          label="ເງິນຕໍ່ຄົນ"
-          value={fmt(totals.perMemberSum)}
-          hint={activityViews.length > 1 ? `ລວມ ${activityViews.length} ກິດຈະກຳ` : undefined}
-        />
-        <StatCard
-          icon={<Wallet className="h-4 w-4" />}
-          label="ຄາດຫວັງ"
-          value={fmt(totals.expected)}
-          hint={`${activeFund.length} × ${fmt(totals.perMemberSum)}`}
-        />
-        <StatCard
-          icon={<CheckCircle2 className="h-4 w-4" />}
-          label="ບໍລິຈາກແລ້ວ"
-          value={fmt(totals.collected)}
-          hint={`${totals.paid} ຄົນ`}
-          trend="up"
-          delta="Paid"
-        />
-        <StatCard
-          icon={<AlertCircle className="h-4 w-4" />}
-          label="ຍັງຂາດ"
-          value={fmt(totals.remaining)}
-          trend={totals.remaining ? "down" : "neutral"}
-        />
-        <StatCard
-          icon={<Percent className="h-4 w-4" />}
-          label="ຄວາມຄືບໜ້າ"
-          value={totals.progress + "%"}
-          hint={`${totals.paid}/${totals.totalRows} ຄົນ`}
-        />
-      </div>
-
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-        <StatCard icon={<CheckCircle2 className="h-4 w-4" />} label="ຈ່າຍແລ້ວ" value={totals.paid} />
-        <StatCard icon={<Clock className="h-4 w-4" />} label="ຍັງບໍ່ທັນຈ່າຍ" value={totals.pending} />
-        <StatCard
-          icon={<AlertCircle className="h-4 w-4" />}
-          label="ຄ້າງຈ່າຍ"
-          value={totals.overdue}
-        />
-      </div>
-
+    <>
       <SectionCard bodyClassName="p-3">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-2">
-          <div className="md:col-span-4 relative">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" aria-hidden />
+        <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
+          <NativeSelect
+            aria-label="ກິດຈະກຳ"
+            value={eventId != null ? String(eventId) : "all"}
+            onChange={(e) => setEvent(e.target.value)}
+            className="lg:w-72"
+          >
+            <option value="all">ທຸກກິດຈະກຳ ({events.length})</option>
+            {events.map((e) => (
+              <option key={e.id} value={String(e.id)}>
+                {e.title} {e.date ? `— ${e.date}` : ""}
+              </option>
+            ))}
+          </NativeSelect>
+          <div className="relative min-w-0 flex-1">
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+              aria-hidden
+            />
             <Input
-              className="pl-8"
-              placeholder="ຄົ້ນຫາຊື່ສະມາຊິກ..."
-              aria-label="ຄົ້ນຫາຊື່ສະມາຊິກ"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              placeholder="ຄົ້ນຫາຊື່ສະມາຊິກ..."
+              aria-label="ຄົ້ນຫາຊື່"
+              className="pl-9"
             />
           </div>
-          <div className="md:col-span-4">
-            <Select value={String(eventId)} onValueChange={(v) => setEventId(v === ALL ? ALL : v)}>
-              <SelectTrigger aria-label="ເລືອກກິດຈະກຳ">
-                <Calendar className="h-4 w-4 mr-1" />
-                <SelectValue placeholder="ທຸກກິດຈະກຳ" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL}>ທຸກກິດຈະກຳ</SelectItem>
-                {events.map((e) => (
-                  <SelectItem key={e.id} value={String(e.id)}>
-                    {e.title} {e.date && `— ${e.date}`}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="md:col-span-4">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger aria-label="ກັ່ນຕອງສະຖານະ">
-                <Filter className="h-4 w-4 mr-1" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={ALL}>ທຸກສະຖານະ</SelectItem>
-                <SelectItem value="paid">ຈ່າຍແລ້ວ</SelectItem>
-                <SelectItem value="pending">ຍັງບໍ່ທັນຈ່າຍ</SelectItem>
-                <SelectItem value="overdue">ຄ້າງຈ່າຍ</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <NativeSelect
+            aria-label="ສະຖານະການຈ່າຍ"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value as PaymentStatus | "all")}
+            className="lg:w-44"
+          >
+            {STATUS_FILTERS.map((s) => (
+              <option key={s} value={s}>
+                {s === "all" ? "ທຸກສະຖານະ" : PAYMENT_STATUS_META[s].label}
+              </option>
+            ))}
+          </NativeSelect>
+          <Button variant="outline" size="sm" onClick={exportCsv}>
+            <Download className="h-4 w-4" /> CSV
+          </Button>
+        </div>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+          <CheckboxField
+            label="ບໍ່ນັບກິດຈະກຳກ່ອນວັນເຂົ້າຮ່ວມກອງທຶນ"
+            checked={respectJoin}
+            onChange={setRespectJoin}
+          />
+          {filteredMember && (
+            <button
+              type="button"
+              className="text-xs text-primary hover:underline"
+              onClick={() => navigate({ search: (p) => ({ ...p, member: undefined }) })}
+            >
+              ສະແດງສະເພາະ: {filteredMember.name} ✕
+            </button>
+          )}
         </div>
       </SectionCard>
 
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
-          <TabsTrigger value="byActivity">
-            <Calendar className="h-4 w-4 mr-1" /> ຕາມກິດຈະກຳ
-          </TabsTrigger>
-          <TabsTrigger value="byMember">
-            <Users className="h-4 w-4 mr-1" /> ຕາມສະມາຊິກ
-          </TabsTrigger>
-        </TabsList>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <StatCard label="ຍອດທີ່ຕ້ອງເກັບ" value={formatKip(totals.expected)} icon={<Wallet />} />
+        <StatCard
+          label="ເກັບໄດ້ແລ້ວ (ສະມາຊິກກອງທຶນ)"
+          value={formatKip(totals.collected)}
+          icon={<CheckCircle2 />}
+          tone="success"
+        />
+        <StatCard
+          label="ຍັງຂາດ"
+          value={formatKip(totals.remaining)}
+          icon={<AlertCircle />}
+          tone={totals.remaining > 0 ? "destructive" : "success"}
+          colorValue
+        />
+        <StatCard
+          label="ຈ່າຍຄົບ"
+          value={`${totals.paid} / ${totals.due}`}
+          icon={<Percent />}
+          tone="info"
+          hint={`ຍອດ ${progress}%`}
+        />
+      </div>
 
-        <TabsContent value="byActivity" className="space-y-4">
-          {activityViews.length === 0 ? (
-            <EmptyState
-              icon={<Calendar className="h-6 w-6" />}
-              title="ບໍ່ພົບກິດຈະກຳ"
-              description="ຍັງບໍ່ມີກິດຈະກຳໃນລະບົບ ຫຼື ບໍ່ກົງກັບຕົວກອງ"
-            />
-          ) : (
-            activityViews.map((v) => {
-              const rows = v.rows
-                .filter((r) => statusFilter === ALL || r.status === statusFilter)
-                .filter((r) => {
-                  const q = search.trim().toLowerCase();
-                  if (!q) return true;
-                  return [r.member.name, r.member.nickname]
-                    .filter(Boolean)
-                    .join(" ")
-                    .toLowerCase()
-                    .includes(q);
-                });
-              return (
-                <SectionCard
-                  key={v.event.id}
-                  bodyClassName="p-0"
-                  title={v.event.title}
-                  description={`${v.event.date || "—"} · ຄາດຫວັງ ${fmt(v.expectedTotal)} · ເກັບໄດ້ ${fmt(v.collected)}`}
-                  actions={
-                    <div className="flex flex-wrap gap-1.5">
-                      <StatusBadge tone="success">ຈ່າຍ {v.paid}</StatusBadge>
-                      <StatusBadge tone="warning">ຍັງບໍ່ຈ່າຍ {v.pending}</StatusBadge>
-                      <StatusBadge tone="destructive">ຄ້າງ {v.overdue}</StatusBadge>
-                      <StatusBadge tone="primary">{v.rate}%</StatusBadge>
-                    </div>
-                  }
+      <SectionCard
+        title={
+          <span className="flex items-center gap-2">
+            <Scale className="h-4 w-4 text-primary" /> ກວດສອບກັບໜ້າການເງິນ
+          </span>
+        }
+      >
+        <div className="space-y-3">
+          <Progress value={progress} aria-label="ຄວາມຄືບໜ້າການເກັບເງິນ" />
+          <dl className="grid gap-3 text-sm sm:grid-cols-3">
+            <div>
+              <dt className="text-xs text-muted-foreground">ລາຍຮັບທີ່ເຊື່ອມກິດຈະກຳ (ການເງິນ)</dt>
+              <dd className="font-semibold tabular-nums">{formatKip(totals.financeIncome)}</dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">ນັບໃຫ້ສະມາຊິກກອງທຶນ</dt>
+              <dd className="font-semibold tabular-nums text-success">
+                {formatKip(totals.collected)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-muted-foreground">ຜູ້ບໍລິຈາກອື່ນ / ບໍ່ລະບຸສະມາຊິກ</dt>
+              <dd className="font-semibold tabular-nums">{formatKip(totals.unattributed)}</dd>
+            </div>
+          </dl>
+          <p className="text-xs text-muted-foreground">
+            ລາຍຮັບແຕ່ລະລາຍການຖືກນັບໃຫ້ສະມາຊິກໄດ້ພຽງຄົນດຽວ (ບໍ່ນັບຊ້ຳ). ຍອດ «ຜູ້ບໍລິຈາກອື່ນ» ລວມຜູ້ທີ່ບໍ່ຢູ່ໃນກອງທຶນ ແລະ
+            ລາຍການທີ່ພິມຊື່ໂດຍບໍ່ເລືອກສະມາຊິກ — ເລືອກສະມາຊິກໃນໜ້າ{" "}
+            <Link to="/finance" className="text-primary hover:underline">
+              ການເງິນ
+            </Link>{" "}
+            ເພື່ອໃຫ້ນັບຖືກຕ້ອງ.
+          </p>
+        </div>
+      </SectionCard>
+
+      <Segmented<View>
+        ariaLabel="ມຸມມອງ"
+        value={view}
+        onChange={setView}
+        options={[
+          {
+            value: "activity",
+            label: (
+              <>
+                <CalendarDays className="h-3.5 w-3.5" /> ຕາມກິດຈະກຳ
+              </>
+            ),
+          },
+          { value: "member", label: "ລາຍການທັງໝົດ" },
+        ]}
+      />
+
+      {fundMembers.length === 0 ? (
+        <EmptyState
+          title="ຍັງບໍ່ມີຜູ້ເຂົ້າຮ່ວມກອງທຶນ"
+          description="ເພີ່ມສະມາຊິກເຂົ້າກອງທຶນກ່ອນ ເພື່ອຕິດຕາມການຈ່າຍ"
+          action={
+            <Button asChild size="sm">
+              <Link to="/fund-contributors">ໄປໜ້າຜູ້ເຂົ້າຮ່ວມກອງທຶນ</Link>
+            </Button>
+          }
+        />
+      ) : view === "member" ? (
+        <SectionCard bodyClassName="p-0">
+          <DataTable
+            columns={columns}
+            rows={flat}
+            getRowKey={(r) => `${r.stats.event.id}-${r.member.id}`}
+            mobileCard={mobileCard}
+            emptyTitle="ບໍ່ພົບຂໍ້ມູນຕາມເງື່ອນໄຂ"
+          />
+        </SectionCard>
+      ) : stats.length === 0 ? (
+        <EmptyState title="ບໍ່ມີກິດຈະກຳ" />
+      ) : (
+        stats.map((s) => {
+          const rows = flat.filter((r) => r.stats.event.id === s.event.id);
+          return (
+            <SectionCard
+              key={s.event.id}
+              bodyClassName="p-0"
+              title={
+                <Link
+                  to="/activities"
+                  search={{ event: s.event.id }}
+                  className="hover:text-primary hover:underline"
                 >
-                  <div className="hidden md:block overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>ຊື່</TableHead>
-                          <TableHead className="text-right">ຄາດຫວັງ</TableHead>
-                          <TableHead className="text-right">ຈຳນວນຈ່າຍ</TableHead>
-                          <TableHead>ວັນຈ່າຍ</TableHead>
-                          <TableHead>ຈ່າຍຜ່ານ</TableHead>
-                          <TableHead>ໃບຮັບ</TableHead>
-                          <TableHead>ສະຖານະ</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {rows.map((r) => (
-                          <TableRow key={r.member.id}>
-                            <TableCell>
-                              <div className="font-medium">{r.member.name}</div>
-                              {r.member.nickname && (
-                                <div className="text-xs text-muted-foreground">
-                                  {r.member.nickname}
-                                </div>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right">{fmt(r.expected)}</TableCell>
-                            <TableCell className="text-right font-semibold">
-                              {r.donation ? fmt(r.donation.amount) : "—"}
-                            </TableCell>
-                            <TableCell className="text-sm">{r.donation?.date || "—"}</TableCell>
-                            <TableCell className="text-sm">{r.donation?.method || "—"}</TableCell>
-                            <TableCell className="text-sm text-muted-foreground">
-                              {r.donation?.receiptNo || r.donation?.id || "—"}
-                            </TableCell>
-                            <TableCell>
-                              <DonationStatus status={r.status} />
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                        {rows.length === 0 && (
-                          <TableRow>
-                            <TableCell
-                              colSpan={7}
-                              className="text-center text-muted-foreground py-6"
-                            >
-                              ບໍ່ມີສະມາຊິກທີ່ຢູ່ໃນເງື່ອນໄຂ
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </TableBody>
-                    </Table>
-                  </div>
-
-                  {/* Mobile: stacked cards */}
-                  <div className="md:hidden divide-y divide-border/70">
-                    {rows.map((r) => (
-                      <div key={r.member.id} className="p-3 space-y-2">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <div className="truncate text-sm font-medium">{r.member.name}</div>
-                            {r.member.nickname && (
-                              <div className="truncate text-xs text-muted-foreground">
-                                {r.member.nickname}
-                              </div>
-                            )}
-                          </div>
-                          <div className="shrink-0">
-                            <DonationStatus status={r.status} />
-                          </div>
-                        </div>
-                        <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
-                          <div className="flex justify-between gap-2">
-                            <dt className="text-muted-foreground">ຄາດຫວັງ</dt>
-                            <dd className="tabular-nums">{fmt(r.expected)}</dd>
-                          </div>
-                          <div className="flex justify-between gap-2">
-                            <dt className="text-muted-foreground">ຈ່າຍ</dt>
-                            <dd className="font-semibold tabular-nums">
-                              {r.donation ? fmt(r.donation.amount) : "—"}
-                            </dd>
-                          </div>
-                          <div className="flex justify-between gap-2">
-                            <dt className="text-muted-foreground">ວັນຈ່າຍ</dt>
-                            <dd>{r.donation?.date || "—"}</dd>
-                          </div>
-                          <div className="flex justify-between gap-2">
-                            <dt className="text-muted-foreground">ຈ່າຍຜ່ານ</dt>
-                            <dd className="truncate">{r.donation?.method || "—"}</dd>
-                          </div>
-                        </dl>
-                      </div>
-                    ))}
-                    {rows.length === 0 && (
-                      <div className="py-6 text-center text-sm text-muted-foreground">
-                        ບໍ່ມີສະມາຊິກທີ່ຢູ່ໃນເງື່ອນໄຂ
-                      </div>
-                    )}
-                  </div>
-                </SectionCard>
-              );
-            })
-          )}
-        </TabsContent>
-
-        <TabsContent value="byMember">
-          <SectionCard bodyClassName="p-0">
-            <div className="hidden md:block overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ຊື່</TableHead>
-                    <TableHead>ກິດຈະກຳ</TableHead>
-                    <TableHead>ວັນຄົບກຳນົດ</TableHead>
-                    <TableHead className="text-right">ຄາດຫວັງ</TableHead>
-                    <TableHead className="text-right">ຈຳນວນຈ່າຍ</TableHead>
-                    <TableHead>ວັນຈ່າຍ</TableHead>
-                    <TableHead>ຈ່າຍຜ່ານ</TableHead>
-                    <TableHead>ສະຖານະ</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {memberRows.map((r, i) => (
-                    <TableRow key={`${r.eventId}-${r.member.id}-${i}`}>
-                      <TableCell className="font-medium">{r.member.name}</TableCell>
-                      <TableCell className="text-sm">{r.eventTitle}</TableCell>
-                      <TableCell className="text-sm">{r.eventDate || "—"}</TableCell>
-                      <TableCell className="text-right">{fmt(r.expected)}</TableCell>
-                      <TableCell className="text-right font-semibold">
-                        {r.donation ? fmt(r.donation.amount) : "—"}
-                      </TableCell>
-                      <TableCell className="text-sm">{r.donation?.date || "—"}</TableCell>
-                      <TableCell className="text-sm">{r.donation?.method || "—"}</TableCell>
-                      <TableCell>
-                        <DonationStatus status={r.status} />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {memberRows.length === 0 && (
-                    <TableRow>
-                      <TableCell colSpan={8} className="p-0">
-                        <EmptyState
-                          icon={<Search className="h-6 w-6" />}
-                          title="ບໍ່ພົບຂໍ້ມູນຕາມຕົວກອງ"
-                          description="ລອງປັບຄຳຄົ້ນຫາ ຫຼື ຕົວກອງສະຖານະ"
-                          className="border-0"
-                        />
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-
-            {/* Mobile: stacked cards */}
-            <div className="md:hidden divide-y divide-border/70">
-              {memberRows.map((r, i) => (
-                <div key={`m-${r.eventId}-${r.member.id}-${i}`} className="p-3 space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-medium">{r.member.name}</div>
-                      <div className="truncate text-xs text-muted-foreground">
-                        {r.eventTitle}
-                        {r.eventDate ? ` · ${r.eventDate}` : ""}
-                      </div>
-                    </div>
-                    <div className="shrink-0">
-                      <DonationStatus status={r.status} />
-                    </div>
-                  </div>
-                  <dl className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
-                    <div className="flex justify-between gap-2">
-                      <dt className="text-muted-foreground">ຄາດຫວັງ</dt>
-                      <dd className="tabular-nums">{fmt(r.expected)}</dd>
-                    </div>
-                    <div className="flex justify-between gap-2">
-                      <dt className="text-muted-foreground">ຈ່າຍ</dt>
-                      <dd className="font-semibold tabular-nums">
-                        {r.donation ? fmt(r.donation.amount) : "—"}
-                      </dd>
-                    </div>
-                    <div className="flex justify-between gap-2">
-                      <dt className="text-muted-foreground">ວັນຈ່າຍ</dt>
-                      <dd>{r.donation?.date || "—"}</dd>
-                    </div>
-                    <div className="flex justify-between gap-2">
-                      <dt className="text-muted-foreground">ຈ່າຍຜ່ານ</dt>
-                      <dd className="truncate">{r.donation?.method || "—"}</dd>
-                    </div>
-                  </dl>
+                  {s.event.title}
+                </Link>
+              }
+              description={`${formatDateLao(s.event.date)} · ${s.perMember ? `${formatKip(s.perMember)}/ຄົນ` : "ບໍ່ໄດ້ກຳນົດເງິນຕໍ່ຄົນ"} · ເກັບໄດ້ ${formatKip(s.collected)} / ${formatKip(s.expectedTotal)}`}
+              actions={
+                <div className="flex flex-wrap gap-1">
+                  <StatusBadge tone="success">{s.counts.paid}</StatusBadge>
+                  <StatusBadge tone="info">{s.counts.partial}</StatusBadge>
+                  <StatusBadge tone="warning">{s.counts.pending}</StatusBadge>
+                  <StatusBadge tone="destructive">{s.counts.overdue}</StatusBadge>
                 </div>
-              ))}
-              {memberRows.length === 0 && (
-                <EmptyState
-                  icon={<Search className="h-6 w-6" />}
-                  title="ບໍ່ພົບຂໍ້ມູນຕາມຕົວກອງ"
-                  description="ລອງປັບຄຳຄົ້ນຫາ ຫຼື ຕົວກອງສະຖານະ"
-                  className="border-0"
-                />
-              )}
-            </div>
-          </SectionCard>
-        </TabsContent>
-      </Tabs>
-    </PageContainer>
+              }
+            >
+              <DataTable
+                columns={columns}
+                rows={rows}
+                getRowKey={(r) => r.member.id}
+                pageSize={10}
+                mobileCard={mobileCard}
+                emptyTitle="ບໍ່ມີສະມາຊິກຕາມເງື່ອນໄຂ"
+              />
+            </SectionCard>
+          );
+        })
+      )}
+    </>
   );
 }

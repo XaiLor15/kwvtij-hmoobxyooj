@@ -1,59 +1,82 @@
 import type { ReactNode } from "react";
+import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
-import { Card } from "@/components/ui/card";
 
-type Trend = "up" | "down" | "neutral";
+type Tone = "primary" | "success" | "warning" | "destructive" | "info" | "neutral";
+
+const toneClass: Record<Tone, string> = {
+  primary: "bg-primary-subtle text-primary",
+  success: "bg-success-subtle text-success",
+  warning: "bg-warning-subtle text-warning-foreground",
+  destructive: "bg-destructive-subtle text-destructive",
+  info: "bg-info-subtle text-info",
+  neutral: "bg-muted text-muted-foreground",
+};
+
+const valueTone: Partial<Record<Tone, string>> = {
+  success: "text-success",
+  destructive: "text-destructive",
+};
 
 /**
- * StatCard — KPI tile with icon, value, label and optional delta/trend.
- * Token-driven; used on dashboard and module overviews.
+ * StatCard — KPI tile. Renders as a link when `to` is given. Use
+ * `colorValue` to tint the number itself (e.g. negative balance in red).
  */
 export function StatCard({
   label,
   value,
   icon,
   hint,
-  delta,
-  trend = "neutral",
+  tone = "primary",
+  colorValue = false,
+  to,
   className,
 }: {
   label: string;
   value: ReactNode;
   icon?: ReactNode;
-  hint?: string;
-  delta?: string;
-  trend?: Trend;
+  hint?: ReactNode;
+  tone?: Tone;
+  colorValue?: boolean;
+  to?: string;
   className?: string;
 }) {
-  const trendClass =
-    trend === "up"
-      ? "text-success"
-      : trend === "down"
-        ? "text-destructive"
-        : "text-muted-foreground";
-
-  return (
-    <Card
-      className={cn(
-        "flex flex-col gap-3 p-4 shadow-xs transition-shadow hover:shadow-sm",
-        className,
-      )}
-    >
-      <div className="flex items-center justify-between">
+  const body = (
+    <>
+      <div className="flex items-center gap-2.5">
         {icon && (
-          <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary-subtle text-primary">
+          <span
+            className={cn(
+              "flex h-8 w-8 shrink-0 items-center justify-center rounded-md [&_svg]:h-4 [&_svg]:w-4",
+              toneClass[tone],
+            )}
+          >
             {icon}
           </span>
         )}
-        {delta && <span className={cn("text-xs font-medium", trendClass)}>{delta}</span>}
+        <span className="min-w-0 truncate text-xs font-medium text-muted-foreground">{label}</span>
       </div>
-      <div>
-        <div className="text-2xl font-semibold tracking-tight tabular-nums text-foreground">
-          {value}
-        </div>
-        <div className="mt-0.5 text-sm text-muted-foreground">{label}</div>
-        {hint && <div className="mt-1 text-xs text-muted-foreground/80">{hint}</div>}
+      <div
+        className={cn(
+          "mt-3 truncate text-xl font-semibold tracking-tight tabular-nums text-foreground sm:text-2xl",
+          colorValue && valueTone[tone],
+        )}
+      >
+        {value}
       </div>
-    </Card>
+      {hint && <div className="mt-1 truncate text-xs text-muted-foreground">{hint}</div>}
+    </>
+  );
+  const base = cn(
+    "block min-w-0 rounded-lg border border-border bg-card p-4 shadow-xs",
+    to && "transition-colors hover:border-primary/40 hover:bg-muted/30",
+    className,
+  );
+  return to ? (
+    <Link to={to} className={base}>
+      {body}
+    </Link>
+  ) : (
+    <div className={base}>{body}</div>
   );
 }

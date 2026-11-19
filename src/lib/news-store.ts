@@ -1,144 +1,126 @@
-// @ts-nocheck
-// News store — backed by Supabase (public.news).
-import { useSyncExternalStore, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+// News store — public.news.
+// `published` (draft support) is added by migration 20261119000100; until
+// then every row counts as published and the draft option is hidden.
+import { useSyncExternalStore } from "react";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { supabase as typedClient } from "@/integrations/supabase/client";
+import { createRealtimeStore, num, str, strArray, type Result } from "@/lib/store/realtime-store";
+import type { NewsItem } from "@/lib/domain/types";
 
 export const NEWS_CATEGORIES = ["ປະກາດ", "ກິດຈະກຳ", "ປະຊຸມ", "ການເງິນ", "ລຳລຶກ", "ດ່ວນ"];
 
-function fromRow(r) {
+let supportsDrafts = false;
+const draftListeners = new Set<() => void>();
+function markDraftSupport() {
+  if (supportsDrafts) return;
+  supportsDrafts = true;
+  draftListeners.forEach((l) => l());
+}
+
+function fromRow(r: Record<string, unknown>): NewsItem {
+  if ("published" in r) markDraftSupport();
   return {
-    id: r.id,
-    title: r.title ?? "ບໍ່ມີຫົວຂໍ້",
-    summary: r.summary ?? "",
-    content: r.content ?? "",
-    category: r.category ?? NEWS_CATEGORIES[0],
-    author: r.author ?? "ບໍ່ລະບຸ",
-    date: r.date ?? "",
-    tags: Array.isArray(r.tags) ? r.tags : [],
-    views: r.views ?? 0,
-    comments: r.comments ?? 0,
+    id: num(r.id),
+    title: str(r.title, "ບໍ່ມີຫົວຂໍ້"),
+    summary: str(r.summary),
+    content: str(r.content),
+    category: str(r.category, NEWS_CATEGORIES[0]),
+    author: str(r.author),
+    date: str(r.date),
+    tags: strArray(r.tags),
+    views: num(r.views),
+    comments: num(r.comments),
     pinned: !!r.pinned,
     featured: !!r.featured,
     urgent: !!r.urgent,
-    image: r.image ?? null,
+    published: r.published !== false,
+    image: r.image ? str(r.image) : null,
   };
 }
 
-let news = [];
-let snapshot = [];
-const listeners = new Set();
-let initialized = false;
-function emit() {
-  snapshot = news.slice();
-  for (const l of listeners) l();
-}
-function subscribe(cb) {
-  ensureInit();
-  listeners.add(cb);
-  return () => listeners.delete(cb);
-}
-function getSnapshot() {
-  return snapshot;
+const store = createRealtimeStore<NewsItem>({
+  table: "news",
+  module: "news",
+  label: "ຂ່າວ",
+  fromRow,
+  getId: (n) => n.id,
+  order: [{ column: "date", ascending: false }],
+  // Pinned first, then newest.
+  sort: (a, b) =>
+    Number(b.pinned) - Number(a.pinned) || b.date.localeCompare(a.date) || b.id - a.id,
+});
+
+export const useNews = store.useItems;
+export const useNewsState = store.useStore;
+
+/** Whether the database has the `published` column (draft support). */
+export function useNewsSupportsDrafts(): boolean {
+  return useSyncExternalStore(
+    (cb) => {
+      draftListeners.add(cb);
+      return () => draftListeners.delete(cb);
+    },
+    () => supportsDrafts,
+    () => false,
+  );
 }
 
-async function hydrate() {
-  const { data, error } = await supabase.from("news").select("*").order("id", { ascending: false });
-  if (error) {
-    console.error("news hydrate", error);
-    return;
-  }
-  news = (data ?? []).map(fromRow);
-  emit();
+export interface NewsInput {
+  title: string;
+  summary: string;
+  content: string;
+  category: string;
+  author: string;
+  date: string;
+  tags: string[];
+  pinned: boolean;
+  featured: boolean;
+  urgent: boolean;
+  published: boolean;
+  image: string | null;
 }
 
-function ensureInit() {
-  if (initialized || typeof window === "undefined") return;
-  initialized = true;
-  hydrate();
-  supabase
-    .channel("realtime:news")
-    .on("postgres_changes", { event: "*", schema: "public", table: "news" }, (payload) => {
-      const { eventType, new: nr, old: or } = payload;
-      if (eventType === "INSERT") {
-        const obj = fromRow(nr);
-        if (!news.some((n) => n.id === obj.id)) news = [obj, ...news];
-      } else if (eventType === "UPDATE") {
-        news = news.map((n) => (n.id === nr.id ? fromRow(nr) : n));
-      } else if (eventType === "DELETE") {
-        news = news.filter((n) => n.id !== or.id);
-      }
-      emit();
-    })
-    .subscribe();
-}
-
-export async function setNews(next) {
-  news = Array.isArray(next) ? [...next] : [];
-  emit();
-}
-
-export async function addNews(data) {
-  const item = {
-    title: data.title?.trim() || "ບໍ່ມີຫົວຂໍ້",
-    summary: data.summary?.trim() || "",
-    content: data.content?.trim() || "",
-    category: data.category || NEWS_CATEGORIES[0],
-    author: data.author?.trim() || "ບໍ່ລະບຸ",
-    date: data.date || new Date().toISOString().slice(0, 10),
-    tags: Array.isArray(data.tags) ? data.tags : [],
-    views: 0,
-    comments: 0,
-    pinned: !!data.pinned,
-    featured: !!data.featured,
-    urgent: !!data.urgent,
-    image: typeof data.image === "string" && !data.image.startsWith("blob:") ? data.image : null,
+function toRow(n: NewsInput) {
+  const row: Record<string, unknown> = {
+    title: n.title.trim(),
+    summary: n.summary.trim(),
+    content: n.content.trim(),
+    category: n.category,
+    author: n.author.trim() || null,
+    date: n.date,
+    tags: n.tags,
+    pinned: n.pinned,
+    featured: n.featured,
+    urgent: n.urgent,
+    image: n.image,
   };
-  const { data: inserted, error } = await supabase.from("news").insert(item).select("*").single();
-  if (error) {
-    console.error("addNews", error);
-    toast.error("ບັນທຶກບໍ່ສຳເລັດ");
-    return null;
+  if (supportsDrafts) row.published = n.published;
+  return row;
+}
+
+export function addNews(n: NewsInput): Promise<Result<NewsItem>> {
+  return store.insert({ ...toRow(n), views: 0, comments: 0 });
+}
+
+export function updateNews(id: number, n: NewsInput): Promise<Result<NewsItem>> {
+  return store.update(id, toRow(n));
+}
+
+export function deleteNews(id: number): Promise<Result<null>> {
+  return store.remove(id);
+}
+
+const viewed = new Set<number>();
+/**
+ * Count a view once per page-load. Uses the `increment_news_views` RPC
+ * (atomic, works for guests). Silently does nothing if the RPC is missing.
+ */
+export async function recordNewsView(id: number): Promise<void> {
+  if (viewed.has(id)) return;
+  viewed.add(id);
+  const client = typedClient as unknown as SupabaseClient;
+  const { error } = await client.rpc("increment_news_views", { news_id: id });
+  if (error && error.code !== "PGRST202" && error.code !== "42883") {
+    console.warn("increment_news_views failed", error.message);
   }
-  const obj = fromRow(inserted);
-  if (!news.some((n) => n.id === obj.id)) news = [obj, ...news];
-  emit();
-  return obj;
-}
-
-export async function updateNews(id, patch) {
-  news = news.map((n) => (n.id === id ? { ...n, ...patch } : n));
-  emit();
-  const row = { ...patch };
-  delete row.id;
-  const { error } = await supabase.from("news").update(row).eq("id", id);
-  if (error) {
-    console.error("updateNews", error);
-    toast.error("ອັບເດດບໍ່ສຳເລັດ");
-  }
-}
-
-export async function deleteNews(id) {
-  news = news.filter((n) => n.id !== id);
-  emit();
-  const { error } = await supabase.from("news").delete().eq("id", id);
-  if (error) {
-    console.error("deleteNews", error);
-    toast.error("ລຶບບໍ່ສຳເລັດ");
-  }
-}
-
-export async function incrementNewsViews(id) {
-  const target = news.find((n) => n.id === id);
-  const next = (target?.views ?? 0) + 1;
-  news = news.map((n) => (n.id === id ? { ...n, views: next } : n));
-  emit();
-  await supabase.from("news").update({ views: next }).eq("id", id);
-}
-
-export function useNews() {
-  useEffect(() => {
-    ensureInit();
-  }, []);
-  return useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 }
