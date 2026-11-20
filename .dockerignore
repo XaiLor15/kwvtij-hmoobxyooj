@@ -1,0 +1,14 @@
+node_modules
+.output
+.tanstack
+.nitro
+.vinxi
+dist
+.git
+.github
+tests/e2e/shots
+*.log
+# Never bake local credentials into the image; Railway Variables are used instead.
+.env
+.env.*
+!.env.example

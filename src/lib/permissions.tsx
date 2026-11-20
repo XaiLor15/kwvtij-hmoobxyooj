@@ -89,14 +89,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginWithGoogle = useCallback(async (): Promise<AuthResult> => {
     try {
-      const { lovable } = await import("@/integrations/lovable");
-      const result = await lovable.auth.signInWithOAuth("google", {
-        redirect_uri: window.location.origin,
-      });
-      if (result.error) {
-        const msg = (result.error as { message?: string }).message;
-        return { ok: false, error: msg ?? "ເຂົ້າລະບົບດ້ວຍ Google ບໍ່ສຳເລັດ" };
+      // Lovable-hosted builds use Lovable's OAuth broker. Everywhere else
+      // (e.g. Railway) use Supabase's own Google provider — it must be enabled
+      // in Supabase → Authentication → Providers (see docs/DEPLOY_RAILWAY.md).
+      if (isLovableHosted()) {
+        const { lovable } = await import("@/integrations/lovable");
+        const result = await lovable.auth.signInWithOAuth("google", {
+          redirect_uri: window.location.origin,
+        });
+        if (result.error) {
+          const msg = (result.error as { message?: string }).message;
+          return { ok: false, error: msg ?? "ເຂົ້າລະບົບດ້ວຍ Google ບໍ່ສຳເລັດ" };
+        }
+        return { ok: true };
       }
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/dashboard` },
+      });
+      if (error) return { ok: false, error: error.message };
       return { ok: true };
     } catch (e) {
       return { ok: false, error: e instanceof Error ? e.message : "ເຂົ້າລະບົບດ້ວຍ Google ບໍ່ສຳເລັດ" };
@@ -114,6 +125,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [session, login, signup, loginWithGoogle, logout],
   );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+/** True on Lovable hosting (or when forced with VITE_AUTH_MODE=lovable). */
+function isLovableHosted(): boolean {
+  const mode = import.meta.env.VITE_AUTH_MODE as string | undefined;
+  if (mode === "lovable") return true;
+  if (mode === "supabase") return false;
+  const host = typeof window !== "undefined" ? window.location.hostname : "";
+  return /(^|\.)lovable(project)?\.(app|com|dev)$/.test(host);
 }
 
 function translateAuthError(msg: string): string {

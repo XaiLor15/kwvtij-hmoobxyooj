@@ -16,6 +16,7 @@ import { Route as DonationTrackingRouteImport } from './routes/donation-tracking
 import { Route as EldersRouteImport } from './routes/elders'
 import { Route as FinanceRouteImport } from './routes/finance'
 import { Route as FundContributorsRouteImport } from './routes/fund-contributors'
+import { Route as HealthzRouteImport } from './routes/healthz'
 import { Route as LeadershipRouteImport } from './routes/leadership'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MembersRouteImport } from './routes/members'
@@ -57,6 +58,11 @@ const FundContributorsRoute = FundContributorsRouteImport.update({
   path: '/fund-contributors',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HealthzRoute = HealthzRouteImport.update({
+  id: '/healthz',
+  path: '/healthz',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LeadershipRoute = LeadershipRouteImport.update({
   id: '/leadership',
   path: '/leadership',
@@ -91,6 +97,7 @@ export interface FileRoutesByFullPath {
   '/elders': typeof EldersRoute
   '/finance': typeof FinanceRoute
   '/fund-contributors': typeof FundContributorsRoute
+  '/healthz': typeof HealthzRoute
   '/leadership': typeof LeadershipRoute
   '/login': typeof LoginRoute
   '/members': typeof MembersRoute
@@ -105,6 +112,7 @@ export interface FileRoutesByTo {
   '/elders': typeof EldersRoute
   '/finance': typeof FinanceRoute
   '/fund-contributors': typeof FundContributorsRoute
+  '/healthz': typeof HealthzRoute
   '/leadership': typeof LeadershipRoute
   '/login': typeof LoginRoute
   '/members': typeof MembersRoute
@@ -120,6 +128,7 @@ export interface FileRoutesById {
   '/elders': typeof EldersRoute
   '/finance': typeof FinanceRoute
   '/fund-contributors': typeof FundContributorsRoute
+  '/healthz': typeof HealthzRoute
   '/leadership': typeof LeadershipRoute
   '/login': typeof LoginRoute
   '/members': typeof MembersRoute
@@ -136,6 +145,7 @@ export interface FileRouteTypes {
     | '/elders'
     | '/finance'
     | '/fund-contributors'
+    | '/healthz'
     | '/leadership'
     | '/login'
     | '/members'
@@ -150,6 +160,7 @@ export interface FileRouteTypes {
     | '/elders'
     | '/finance'
     | '/fund-contributors'
+    | '/healthz'
     | '/leadership'
     | '/login'
     | '/members'
@@ -164,6 +175,7 @@ export interface FileRouteTypes {
     | '/elders'
     | '/finance'
     | '/fund-contributors'
+    | '/healthz'
     | '/leadership'
     | '/login'
     | '/members'
@@ -179,6 +191,7 @@ export interface RootRouteChildren {
   EldersRoute: typeof EldersRoute
   FinanceRoute: typeof FinanceRoute
   FundContributorsRoute: typeof FundContributorsRoute
+  HealthzRoute: typeof HealthzRoute
   LeadershipRoute: typeof LeadershipRoute
   LoginRoute: typeof LoginRoute
   MembersRoute: typeof MembersRoute
@@ -237,6 +250,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FundContributorsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/healthz': {
+      id: '/healthz'
+      path: '/healthz'
+      fullPath: '/healthz'
+      preLoaderRoute: typeof HealthzRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/leadership': {
       id: '/leadership'
       path: '/leadership'
@@ -283,6 +303,7 @@ const rootRouteChildren: RootRouteChildren = {
   EldersRoute: EldersRoute,
   FinanceRoute: FinanceRoute,
   FundContributorsRoute: FundContributorsRoute,
+  HealthzRoute: HealthzRoute,
   LeadershipRoute: LeadershipRoute,
   LoginRoute: LoginRoute,
   MembersRoute: MembersRoute,

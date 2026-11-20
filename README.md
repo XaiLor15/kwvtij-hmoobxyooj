@@ -26,6 +26,16 @@ npm test         # unit tests ຂອງ business logic
 
 ລາຍງານການກວດສອບ: [`docs/AUDIT_REPORT.md`](docs/AUDIT_REPORT.md) · ການທົດສອບ browser: [`tests/e2e/`](tests/e2e/README.md)
 
+## Deploy ຂຶ້ນ Railway
+
+ເບິ່ງ [`docs/DEPLOY_RAILWAY.md`](docs/DEPLOY_RAILWAY.md) — Dockerfile, `railway.json`, `.env.example`,
+script ຍ້າຍຂໍ້ມູນ ແລະ ຂັ້ນຕອນຕັ້ງຄ່າ Supabase ຄົບ.
+
+```bash
+npm run build:node   # build ເປັນ Node server (ສຳລັບ Railway/Docker)
+npm start            # ລັນ server ທີ່ build ແລ້ວ (ໃຊ້ PORT)
+```
+
 ## ຖານຂໍ້ມູນ
 
 ຂໍ້ມູນທັງໝົດຢູ່ Lovable Cloud (Supabase). ເມື່ອຍ້າຍໄປໂປຣເຈັກໃໝ່:
