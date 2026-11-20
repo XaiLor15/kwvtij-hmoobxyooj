@@ -265,7 +265,7 @@ function ActivitiesPage() {
                     <button
                       type="button"
                       onClick={() => select(e)}
-                      className="flex h-full w-full gap-3 rounded-lg border border-border bg-card p-4 text-left transition-colors hover:border-primary/40 hover:bg-muted/30"
+                      className="depth-card flex h-full w-full gap-3 rounded-lg border border-border bg-card p-4 text-left shadow-xs hover:border-primary/40"
                     >
                       <span
                         className={

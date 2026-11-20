@@ -66,7 +66,7 @@ function LoginPage() {
 
   return (
     <div className="flex min-h-[calc(100dvh-3.5rem)] items-center justify-center px-4 py-10">
-      <div className="w-full max-w-sm space-y-6">
+      <div className="page-enter w-full max-w-sm space-y-6">
         <div className="space-y-2 text-center">
           <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-primary-foreground">
             <TreePine className="h-5 w-5" />

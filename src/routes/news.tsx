@@ -179,10 +179,14 @@ function NewsPage() {
             <button
               type="button"
               onClick={() => open(featured)}
-              className="grid w-full overflow-hidden rounded-lg border border-border bg-card text-left shadow-xs transition-colors hover:border-primary/40 md:grid-cols-2"
+              className="depth-card group grid w-full overflow-hidden rounded-lg border border-border bg-card text-left shadow-sm hover:border-primary/40 md:grid-cols-2"
             >
               {featured.image ? (
-                <img src={featured.image} alt="" className="h-48 w-full object-cover md:h-full" />
+                <img
+                  src={featured.image}
+                  alt=""
+                  className="h-48 w-full object-cover transition-transform duration-700 group-hover:scale-105 md:h-full"
+                />
               ) : (
                 <div className="flex h-32 items-center justify-center bg-primary-subtle text-primary md:h-full">
                   <Megaphone className="h-10 w-10" />
@@ -209,13 +213,18 @@ function NewsPage() {
                   type="button"
                   onClick={() => open(n)}
                   className={cn(
-                    "flex h-full w-full flex-col overflow-hidden rounded-lg border bg-card text-left shadow-xs transition-colors hover:border-primary/40",
+                    "depth-card group flex h-full w-full flex-col overflow-hidden rounded-lg border bg-card text-left shadow-xs hover:border-primary/40",
                     n.urgent ? "border-destructive/40" : "border-border",
                     !n.published && "border-dashed",
                   )}
                 >
                   {n.image && (
-                    <img src={n.image} alt="" loading="lazy" className="h-36 w-full object-cover" />
+                    <img
+                      src={n.image}
+                      alt=""
+                      loading="lazy"
+                      className="h-36 w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
                   )}
                   <div className="flex flex-1 flex-col gap-2 p-4">
                     <div className="flex flex-wrap gap-1">

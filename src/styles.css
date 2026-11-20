@@ -276,3 +276,174 @@
   background-clip: padding-box;
   border: 2px solid transparent;
 }
+
+/* =====================================================================
+ * Motion & depth
+ * - Page entrance: direct children of .page-enter (and items of grids /
+ *   lists inside it) fade up in a short stagger when they mount.
+ * - .depth-card: hover lift + deeper shadow.
+ * - .tilt-card: subtle 3D tilt + light sheen that follows the pointer
+ *   (pointer devices only; values set by hooks/use-tilt.ts).
+ * Everything is disabled for users who prefer reduced motion.
+ * ===================================================================== */
+@keyframes kwv-fade-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes kwv-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Soft ambient depth behind every page */
+.page-backdrop {
+  background:
+    radial-gradient(
+      1200px 420px at 15% -10%,
+      oklch(from var(--primary) l c h / 0.07),
+      transparent 60%
+    ),
+    radial-gradient(900px 380px at 100% 0%, oklch(from var(--info) l c h / 0.05), transparent 65%),
+    var(--color-background);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .page-enter > * {
+    animation: kwv-fade-up 520ms var(--ease-emphasized) backwards;
+  }
+  .page-enter > *:nth-child(1) {
+    animation-delay: 0ms;
+  }
+  .page-enter > *:nth-child(2) {
+    animation-delay: 60ms;
+  }
+  .page-enter > *:nth-child(3) {
+    animation-delay: 120ms;
+  }
+  .page-enter > *:nth-child(4) {
+    animation-delay: 180ms;
+  }
+  .page-enter > *:nth-child(5) {
+    animation-delay: 240ms;
+  }
+  .page-enter > *:nth-child(n + 6) {
+    animation-delay: 300ms;
+  }
+
+  /* Cards inside grids/lists cascade in (also when data arrives later). */
+  .page-enter .grid > *,
+  .page-enter ul.divide-y > li {
+    animation: kwv-fade-up 460ms var(--ease-emphasized) backwards;
+  }
+  .page-enter .grid > *:nth-child(2),
+  .page-enter ul.divide-y > li:nth-child(2) {
+    animation-delay: 40ms;
+  }
+  .page-enter .grid > *:nth-child(3),
+  .page-enter ul.divide-y > li:nth-child(3) {
+    animation-delay: 80ms;
+  }
+  .page-enter .grid > *:nth-child(4),
+  .page-enter ul.divide-y > li:nth-child(4) {
+    animation-delay: 120ms;
+  }
+  .page-enter .grid > *:nth-child(5),
+  .page-enter ul.divide-y > li:nth-child(5) {
+    animation-delay: 160ms;
+  }
+  .page-enter .grid > *:nth-child(6),
+  .page-enter ul.divide-y > li:nth-child(6) {
+    animation-delay: 200ms;
+  }
+  .page-enter .grid > *:nth-child(n + 7),
+  .page-enter ul.divide-y > li:nth-child(n + 7) {
+    animation-delay: 240ms;
+  }
+
+  /* Table rows fade (no movement — keeps columns steady). */
+  .page-enter tbody > tr {
+    animation: kwv-fade-in 360ms var(--ease-standard) backwards;
+  }
+
+  .depth-card {
+    transition:
+      transform var(--duration-base) var(--ease-standard),
+      box-shadow var(--duration-base) var(--ease-standard),
+      border-color var(--duration-base) var(--ease-standard);
+    will-change: transform;
+  }
+  .depth-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+  }
+  .depth-card:active {
+    transform: translateY(-1px) scale(0.995);
+    box-shadow: var(--shadow-md);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) and (hover: hover) and (pointer: fine) {
+  .tilt-card {
+    position: relative;
+    transform-style: preserve-3d;
+    transform: perspective(900px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg))
+      translateY(var(--tilt-lift, 0px));
+    transition:
+      transform 180ms var(--ease-standard),
+      box-shadow var(--duration-base) var(--ease-standard);
+  }
+  .tilt-card[data-tilting="true"] {
+    --tilt-lift: -4px;
+    box-shadow: var(--shadow-xl);
+    transition:
+      transform 60ms linear,
+      box-shadow var(--duration-base) var(--ease-standard);
+  }
+  /* Light sheen following the pointer */
+  .tilt-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(
+      360px circle at var(--tilt-mx, 50%) var(--tilt-my, 50%),
+      oklch(1 0 0 / 0.16),
+      transparent 55%
+    );
+    transition: opacity var(--duration-base) var(--ease-standard);
+  }
+  .dark .tilt-card::after {
+    background: radial-gradient(
+      360px circle at var(--tilt-mx, 50%) var(--tilt-my, 50%),
+      oklch(1 0 0 / 0.07),
+      transparent 55%
+    );
+  }
+  .tilt-card[data-tilting="true"]::after {
+    opacity: 1;
+  }
+  /* Parallax: these children float above the card surface while it tilts */
+  .tilt-card .tilt-pop {
+    transform: translateZ(28px);
+    transition: transform var(--duration-base) var(--ease-standard);
+  }
+  .tilt-card .tilt-pop-sm {
+    transform: translateZ(14px);
+  }
+  .tilt-card:not([data-tilting="true"]) .tilt-pop,
+  .tilt-card:not([data-tilting="true"]) .tilt-pop-sm {
+    transform: none;
+  }
+}

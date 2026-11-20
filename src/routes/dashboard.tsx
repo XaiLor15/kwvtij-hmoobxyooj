@@ -87,7 +87,7 @@ function ListRow({
     <Link
       to={to}
       search={search as never}
-      className="flex items-center gap-3 rounded-md px-2 py-2 transition-colors hover:bg-muted/60"
+      className="flex items-center gap-3 rounded-md px-2 py-2 transition-[background-color,transform] duration-200 hover:translate-x-1 hover:bg-muted/60"
     >
       {children}
     </Link>

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { cn } from "@/lib/utils";
+import { useTilt } from "@/hooks/use-tilt";
 
 type Tone = "primary" | "success" | "warning" | "destructive" | "info" | "neutral";
 
@@ -41,13 +42,14 @@ export function StatCard({
   to?: string;
   className?: string;
 }) {
+  const tilt = useTilt<HTMLElement>(to ? 7 : 5);
   const body = (
     <>
       <div className="flex items-center gap-2.5">
         {icon && (
           <span
             className={cn(
-              "flex h-8 w-8 shrink-0 items-center justify-center rounded-md [&_svg]:h-4 [&_svg]:w-4",
+              "tilt-pop flex h-8 w-8 shrink-0 items-center justify-center rounded-md [&_svg]:h-4 [&_svg]:w-4",
               toneClass[tone],
             )}
           >
@@ -58,7 +60,7 @@ export function StatCard({
       </div>
       <div
         className={cn(
-          "mt-3 truncate text-xl font-semibold tracking-tight tabular-nums text-foreground sm:text-2xl",
+          "tilt-pop-sm mt-3 truncate text-xl font-semibold tracking-tight tabular-nums text-foreground sm:text-2xl",
           colorValue && valueTone[tone],
         )}
       >
@@ -68,15 +70,17 @@ export function StatCard({
     </>
   );
   const base = cn(
-    "block min-w-0 rounded-lg border border-border bg-card p-4 shadow-xs",
-    to && "transition-colors hover:border-primary/40 hover:bg-muted/30",
+    "tilt-card block min-w-0 rounded-lg border border-border bg-card p-4 shadow-sm",
+    to && "transition-colors hover:border-primary/40",
     className,
   );
   return to ? (
-    <Link to={to} className={base}>
+    <Link to={to} className={base} {...tilt}>
       {body}
     </Link>
   ) : (
-    <div className={base}>{body}</div>
+    <div className={base} {...tilt}>
+      {body}
+    </div>
   );
 }

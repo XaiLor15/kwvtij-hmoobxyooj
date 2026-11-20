@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { PersonAvatar } from "@/components/enterprise";
 import { cn } from "@/lib/utils";
+import { useTilt } from "@/hooks/use-tilt";
 
 export interface RosterActions {
   onEdit?: () => void;
@@ -56,16 +57,25 @@ export function RosterCard({
   muted?: boolean;
   actions: RosterActions;
 }) {
+  const tilt = useTilt<HTMLElement>(5);
   const hasMenu = actions.onEdit || actions.onMove || actions.onToggleActive || actions.onDelete;
   return (
     <article
+      {...tilt}
       className={cn(
-        "flex h-full flex-col rounded-lg border border-border bg-card p-4 shadow-xs",
+        "tilt-card flex h-full flex-col rounded-lg border border-border bg-card p-4 shadow-sm",
         !active && "border-dashed opacity-70",
       )}
     >
       <div className="flex items-start gap-3">
-        <PersonAvatar name={name} photo={photo} id={id} size="lg" muted={muted} />
+        <PersonAvatar
+          name={name}
+          photo={photo}
+          id={id}
+          size="lg"
+          muted={muted}
+          className="tilt-pop"
+        />
         <div className="min-w-0 flex-1">
           <h3 className="truncate text-sm font-semibold">{name}</h3>
           <p className="truncate text-xs font-medium text-primary">{title}</p>
